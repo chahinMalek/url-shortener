@@ -23,4 +23,4 @@ repos:
         entry: uv run pytest -m unit tests/
         language: system
         pass_filenames: false
-        always_run: true
+        types: [python]
