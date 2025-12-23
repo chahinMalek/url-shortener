@@ -3,7 +3,7 @@ from datetime import UTC, datetime
 
 from fastapi import APIRouter, HTTPException, status
 
-from app.dependencies.types import AuthServiceDep, UserRepoDep
+from app.dependencies import AuthServiceDep, UserRepoDep
 from app.schemas.auth import TokenResponse, UserLoginRequest, UserRegisterRequest, UserResponse
 from core.entities.users import User
 
@@ -12,10 +12,15 @@ router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
 
 @router.post(
     "/register",
-    response_model=UserResponse,
-    status_code=status.HTTP_201_CREATED,
     summary="Register a new user",
     description="Create a new user account with email and password",
+    response_model=UserResponse,
+    status_code=status.HTTP_201_CREATED,
+    responses={
+        201: {"description": "User registered successfully"},
+        400: {"description": "User with provided email is already registered"},
+        422: {"description": "Validation error"},
+    },
 )
 async def register(
     req: UserRegisterRequest, user_repository: UserRepoDep, auth_service: AuthServiceDep
@@ -49,10 +54,16 @@ async def register(
 
 @router.post(
     "/login",
-    response_model=TokenResponse,
-    status_code=status.HTTP_200_OK,
     summary="Login user",
     description="Authenticate user and return JWT access token",
+    response_model=TokenResponse,
+    status_code=status.HTTP_200_OK,
+    responses={
+        200: {"description": "Authentication successful"},
+        401: {"description": "Incorrect email or password"},
+        403: {"description": "Account is inactive"},
+        422: {"description": "Validation error"},
+    },
 )
 async def login(body: UserLoginRequest, user_repository: UserRepoDep, auth_service: AuthServiceDep):
     user = await user_repository.get_by_email(body.email)
