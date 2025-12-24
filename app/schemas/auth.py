@@ -6,7 +6,7 @@ from pydantic import BaseModel, EmailStr, Field
 class TokenPayload(BaseModel):
     sub: str = Field(..., description="Subject (user ID)")
     email: str = Field(..., description="User email")
-    exp: datetime = Field(..., description="Token expiration time")
+    exp: int = Field(..., description="Token expiration UNIX timestamp")
 
 
 class UserRegisterRequest(BaseModel):

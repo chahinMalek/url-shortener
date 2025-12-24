@@ -36,7 +36,7 @@ class AuthService:
 
     def create_access_token(self, sub: str, email: str) -> str:
         expire = datetime.now(UTC) + timedelta(minutes=self._token_expiration)
-        payload = TokenPayload(sub=sub, email=email, exp=expire)
+        payload = TokenPayload(sub=sub, email=email, exp=int(expire.timestamp()))
         return jwt.encode(
             claims=payload.model_dump(mode="json"),
             key=self._secret_key,
