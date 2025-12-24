@@ -1,17 +1,10 @@
 from fastapi import Depends, Header, HTTPException, status
 
-from app.config import get_settings
-from app.dependencies.db import get_user_repository
+from app.dependencies.repositories import get_user_repository
+from app.dependencies.services import get_auth_service
 from app.schemas.auth import TokenPayload
 from core.entities.users import User
 from core.services.auth_service import AuthService
-from infra.config import Settings
-
-
-def get_auth_service(
-    settings: Settings = Depends(get_settings),
-) -> AuthService:
-    return AuthService(settings)
 
 
 async def get_current_user(

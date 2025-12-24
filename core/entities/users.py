@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 
 from core.permissions import Permission
 
@@ -11,7 +11,7 @@ class User:
     password_hash: str
     permissions: list[Permission] = field(default_factory=list)
     is_active: bool = True
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default=datetime.now(UTC))
     updated_at: datetime | None = None
     last_login: datetime | None = None
 
@@ -25,4 +25,4 @@ class User:
         return all(perm in self.permissions for perm in permissions)
 
     def update_last_login(self) -> None:
-        self.last_login = datetime.utcnow()
+        self.last_login = datetime.now(UTC)

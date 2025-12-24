@@ -9,9 +9,11 @@ from app.routers import url as url_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await db_service.init_db()
-    yield
-    await db_service.close()
+    try:
+        await db_service.init_db()
+        yield
+    finally:
+        await db_service.close()
 
 
 app = FastAPI(
@@ -48,4 +50,5 @@ async def root():
 def health_check():
     return {
         "status": "healthy",
+        "version": settings.app_version,
     }

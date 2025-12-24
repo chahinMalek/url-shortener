@@ -3,7 +3,7 @@ from datetime import UTC, datetime
 
 from fastapi import APIRouter, HTTPException, status
 
-from app.dependencies import AuthServiceDep, UserRepoDep
+from app.dependencies.types import AuthServiceDep, UserRepoDep
 from app.schemas.auth import TokenResponse, UserLoginRequest, UserRegisterRequest, UserResponse
 from core.entities.users import User
 
