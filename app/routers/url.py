@@ -17,9 +17,12 @@ router = APIRouter(prefix="/api/v1/url", tags=["URL"])
     response_model=ShortenResponse,
     status_code=status.HTTP_200_OK,
     responses={
-        200: {"description": "URL successfully shortened"},
-        401: {"description": "Unauthorized - Missing or invalid credentials"},
-        403: {"description": "Forbidden - Insufficient permissions"},
+        status.HTTP_200_OK: {"description": "URL successfully shortened"},
+        status.HTTP_401_UNAUTHORIZED: {
+            "description": "Unauthorized - Missing or invalid credentials"
+        },
+        status.HTTP_403_FORBIDDEN: {"description": "Forbidden - Insufficient permissions"},
+        status.HTTP_409_CONFLICT: {"description": "Code collision detected."},
     },
 )
 async def shorten(
@@ -71,6 +74,11 @@ async def shorten(
     This way observability is preserved and we allow future destination changes.
     """,
     status_code=status.HTTP_302_FOUND,
+    responses={
+        status.HTTP_302_FOUND: {"description": "Found requested URL"},
+        status.HTTP_400_BAD_REQUEST: {"description": "Invalid short URL"},
+        status.HTTP_404_NOT_FOUND: {"description": "Requested URL not found"},
+    },
 )
 async def retrieve(
     short_url: str,
@@ -78,10 +86,10 @@ async def retrieve(
     hashing: HashingServiceDep,
 ):
     if not hashing.validate_hash(short_url):
-        raise HTTPException(status_code=404, detail="Invalid short URL")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid short URL")
     url = await url_repo.get_by_code(short_url)
     if not url:
-        raise HTTPException(status_code=404, detail="Short URL not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Short URL not found")
     response = RedirectResponse(
         url=url.long_url,
         status_code=status.HTTP_302_FOUND,

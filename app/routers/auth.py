@@ -17,9 +17,11 @@ router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
     response_model=UserResponse,
     status_code=status.HTTP_201_CREATED,
     responses={
-        201: {"description": "User registered successfully"},
-        400: {"description": "User with provided email is already registered"},
-        422: {"description": "Validation error"},
+        status.HTTP_201_CREATED: {"description": "User registered successfully"},
+        status.HTTP_400_BAD_REQUEST: {
+            "description": "User with provided email is already registered"
+        },
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {"description": "Validation error"},
     },
 )
 async def register(
@@ -31,7 +33,6 @@ async def register(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email already registered",
         )
-
     user_id = str(uuid.uuid4())
     password_hash = auth_service.hash_password(req.password)
     user = User(
@@ -59,10 +60,10 @@ async def register(
     response_model=TokenResponse,
     status_code=status.HTTP_200_OK,
     responses={
-        200: {"description": "Authentication successful"},
-        401: {"description": "Incorrect email or password"},
-        403: {"description": "Account is inactive"},
-        422: {"description": "Validation error"},
+        status.HTTP_200_OK: {"description": "Authentication successful"},
+        status.HTTP_401_UNAUTHORIZED: {"description": "Incorrect email or password"},
+        status.HTTP_403_FORBIDDEN: {"description": "Account is inactive"},
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {"description": "Validation error"},
     },
 )
 async def login(body: UserLoginRequest, user_repository: UserRepoDep, auth_service: AuthServiceDep):
