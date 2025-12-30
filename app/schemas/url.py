@@ -1,14 +1,15 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
 
 class ShortenRequest(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+
     long_url: HttpUrl = Field(..., alias="long-url", description="The URL to shorten")
     expires: datetime | None = Field(default=None, description="Expiration datetime")
-
-    class Config:
-        populate_by_name = True
 
 
 class ShortenResponse(BaseModel):
@@ -19,5 +20,6 @@ class ShortenResponse(BaseModel):
         ..., alias="is-active", description="Whether the shortened URL is active"
     )
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )

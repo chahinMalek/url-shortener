@@ -61,7 +61,7 @@ class PostgresUserRepository(UserRepository):
             .values(
                 email=user.email,
                 password_hash=user.password_hash,
-                permissions=user.permissions,
+                permissions=[p.value for p in user.permissions],
                 is_active=user.is_active,
                 updated_at=updated_at,
                 last_login=user.last_login,

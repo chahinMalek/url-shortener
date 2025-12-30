@@ -6,6 +6,7 @@ from app.dependencies.services import get_auth_service
 from app.schemas.auth import TokenPayload
 from app.services.auth_service import AuthService
 from core.entities.users import User
+from core.repositories.users import UserRepository
 
 security = HTTPBearer()
 
@@ -13,7 +14,7 @@ security = HTTPBearer()
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     auth_service: AuthService = Depends(get_auth_service),
-    user_repository=Depends(get_user_repository),
+    user_repository: UserRepository = Depends(get_user_repository),
 ) -> User:
     token = credentials.credentials
     payload: TokenPayload = auth_service.decode_access_token(token)
