@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.entities.url import Url
 from core.repositories.urls import UrlRepository
-from infra.db.models.url import UrlModel
+from infra.db.models import UrlModel
 
 
 class PostgresUrlRepository(UrlRepository):

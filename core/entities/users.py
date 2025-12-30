@@ -11,7 +11,7 @@ class User:
     password_hash: str
     permissions: list[Permission] = field(default_factory=list)
     is_active: bool = True
-    created_at: datetime = field(default=datetime.now(UTC))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime | None = None
     last_login: datetime | None = None
 

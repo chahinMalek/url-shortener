@@ -1,5 +1,3 @@
-from datetime import UTC, datetime
-
 from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import RedirectResponse
 
@@ -53,7 +51,6 @@ async def shorten(
         short_code=short_code,
         long_url=long_url,
         owner_id=user.user_id,
-        created_at=datetime.now(UTC),
         is_active=True,
     )
     await url_repo.add(url)

@@ -3,7 +3,7 @@ from datetime import UTC, datetime
 from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.entities.users import User
+from core.entities.users import Permission, User
 from core.repositories.users import UserRepository
 from infra.db.models import UserModel
 
@@ -17,7 +17,7 @@ class PostgresUserRepository(UserRepository):
             user_id=model.user_id,
             email=model.email,
             password_hash=model.password_hash,
-            permissions=model.permissions,
+            permissions=[Permission(p) for p in model.permissions],
             is_active=model.is_active,
             created_at=model.created_at,
             updated_at=model.updated_at,
@@ -29,7 +29,7 @@ class PostgresUserRepository(UserRepository):
             user_id=user.user_id,
             email=user.email,
             password_hash=user.password_hash,
-            permissions=user.permissions,
+            permissions=[p.value for p in user.permissions],
             is_active=user.is_active,
             created_at=user.created_at,
             updated_at=user.updated_at,

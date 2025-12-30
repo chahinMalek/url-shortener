@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class TokenPayload(BaseModel):
@@ -25,11 +25,12 @@ class TokenResponse(BaseModel):
 
 
 class UserResponse(BaseModel):
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
     user_id: str
     email: str
     is_active: bool
     created_at: datetime
     last_login: datetime | None = None
-
-    class Config:
-        from_attributes = True
