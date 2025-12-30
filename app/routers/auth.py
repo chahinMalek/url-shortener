@@ -1,7 +1,8 @@
 import uuid
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi_limiter.depends import RateLimiter
 
 from app.dependencies.types import AuthServiceDep, UserRepoDep
 from app.schemas.auth import TokenResponse, UserLoginRequest, UserRegisterRequest, UserResponse
@@ -22,7 +23,11 @@ router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
             "description": "User with provided email is already registered"
         },
         status.HTTP_422_UNPROCESSABLE_CONTENT: {"description": "Validation error"},
+        status.HTTP_429_TOO_MANY_REQUESTS: {
+            "description": "Rate limit reached - too many requests"
+        },
     },
+    dependencies=[Depends(RateLimiter(times=10, seconds=60))],
 )
 async def register(
     req: UserRegisterRequest, user_repository: UserRepoDep, auth_service: AuthServiceDep
@@ -64,7 +69,11 @@ async def register(
         status.HTTP_401_UNAUTHORIZED: {"description": "Incorrect email or password"},
         status.HTTP_403_FORBIDDEN: {"description": "Account is inactive"},
         status.HTTP_422_UNPROCESSABLE_CONTENT: {"description": "Validation error"},
+        status.HTTP_429_TOO_MANY_REQUESTS: {
+            "description": "Rate limit reached - too many requests"
+        },
     },
+    dependencies=[Depends(RateLimiter(times=10, seconds=60))],
 )
 async def login(body: UserLoginRequest, user_repository: UserRepoDep, auth_service: AuthServiceDep):
     user = await user_repository.get_by_email(body.email)

@@ -1,5 +1,6 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import RedirectResponse
+from fastapi_limiter.depends import RateLimiter
 
 from app.dependencies.types import CurrentUserDep, HashingServiceDep, UrlRepoDep
 from app.schemas import ShortenRequest, ShortenResponse
@@ -21,7 +22,11 @@ router = APIRouter(prefix="/api/v1/url", tags=["URL"])
         },
         status.HTTP_403_FORBIDDEN: {"description": "Forbidden - Insufficient permissions"},
         status.HTTP_409_CONFLICT: {"description": "Code collision detected."},
+        status.HTTP_429_TOO_MANY_REQUESTS: {
+            "description": "Rate limit reached - too many requests"
+        },
     },
+    dependencies=[Depends(RateLimiter(times=10, seconds=60))],
 )
 async def shorten(
     request: ShortenRequest,
@@ -75,7 +80,11 @@ async def shorten(
         status.HTTP_302_FOUND: {"description": "Found requested URL"},
         status.HTTP_400_BAD_REQUEST: {"description": "Invalid short URL"},
         status.HTTP_404_NOT_FOUND: {"description": "Requested URL not found"},
+        status.HTTP_429_TOO_MANY_REQUESTS: {
+            "description": "Rate limit reached - too many requests"
+        },
     },
+    dependencies=[Depends(RateLimiter(times=10, seconds=60))],
 )
 async def retrieve(
     short_url: str,

@@ -43,12 +43,13 @@ class AuthService:
             algorithm=self._algorithm,
         )
 
-    def decode_access_token(self, token: str) -> TokenPayload | None:
+    def decode_access_token(self, token: str, verify_exp: bool = True) -> TokenPayload | None:
         try:
             payload_dict = jwt.decode(
                 token=token,
                 key=self._secret_key,
                 algorithms=[self._algorithm],
+                options={"verify_exp": verify_exp},
             )
             return TokenPayload(**payload_dict)
         except (JWTError, ValueError):

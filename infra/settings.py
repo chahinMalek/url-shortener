@@ -38,6 +38,12 @@ class Settings(BaseSettings):
         description="Echo SQL statements to stdout (useful for debugging)",
     )
 
+    # Redis settings
+    redis_url: str = Field(
+        ...,
+        description="Redis connection string (e.g., redis://redis:6379/db)",
+    )
+
     # Auth settings
     secret_key: str = Field(
         ...,  # Required, no default
