@@ -5,7 +5,7 @@ from argon2.exceptions import VerificationError, VerifyMismatchError
 from jose import JWTError, jwt
 
 from app.schemas.auth import TokenPayload
-from infra.config import Settings
+from infra.settings import Settings
 
 
 class AuthService:

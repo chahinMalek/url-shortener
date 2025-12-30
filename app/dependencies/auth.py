@@ -4,8 +4,8 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from app.dependencies.repositories import get_user_repository
 from app.dependencies.services import get_auth_service
 from app.schemas.auth import TokenPayload
+from app.services.auth_service import AuthService
 from core.entities.users import User
-from core.services.auth_service import AuthService
 
 security = HTTPBearer()
 

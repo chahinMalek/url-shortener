@@ -1,7 +1,7 @@
 from functools import lru_cache
 
-from infra.config import Settings
 from infra.services.db_service import DatabaseService
+from infra.settings import Settings
 
 
 @lru_cache
