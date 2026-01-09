@@ -6,8 +6,8 @@ A modern, fast, and secure URL shortening system built with FastAPI and enhanced
 [![CI](https://github.com/chahinMalek/url-shortener/actions/workflows/ci.yml/badge.svg)](https://github.com/chahinMalek/url-shortener/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-009688.svg?style=flat&logo=FastAPI&logoColor=white)](https://fastapi.tiangolo.com)
-[![Tests](https://img.shields.io/badge/tests-10%20passed-success)](https://github.com/chahinMalek/url-shortener/actions)
-[![Coverage](https://img.shields.io/badge/coverage-13%25-green)](https://github.com/chahinMalek/url-shortener/actions)
+[![Tests](https://img.shields.io/badge/tests-32%20passed-success)](https://github.com/chahinMalek/url-shortener/actions)
+[![Coverage](https://img.shields.io/badge/coverage-92%25-green)](https://github.com/chahinMalek/url-shortener/actions)
 [![Code Style](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 
 ## 🚀 Vision: Safety First
