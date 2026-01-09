@@ -10,11 +10,9 @@ class TestHashingService:
         return HashingService()
 
     def test_init(self, hashing_service: HashingService):
+        expected_alphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
         assert isinstance(hashing_service, HashingService)
-        assert (
-            hashing_service.ALPHABET
-            == "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        )
+        assert hashing_service.ALPHABET == expected_alphabet
         assert hashing_service.CODE_LENGTH == 8
         assert hasattr(hashing_service, "generate_hash")
         assert hasattr(hashing_service, "validate_hash")
