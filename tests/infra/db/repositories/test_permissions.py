@@ -1,7 +1,7 @@
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.permissions import Permission
+from core.entities.users import Permission
 from infra.db.models.user import UserModel
 from infra.db.repositories.permissions import PostgresPermissionRepository
 

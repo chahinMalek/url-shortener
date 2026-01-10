@@ -1,9 +1,7 @@
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.entities.users import Permission as PermissionEntity
-from core.entities.users import User
-from core.permissions import Permission
+from core.entities.users import Permission, User
 from core.repositories.permissions import PermissionRepository
 from infra.db.models import UserModel
 from infra.db.models.permission import UserPermissionModel
@@ -18,7 +16,7 @@ class PostgresPermissionRepository(PermissionRepository):
             user_id=model.user_id,
             email=model.email,
             password_hash=model.password_hash,
-            permissions=[PermissionEntity(p.permission) for p in model.permissions],
+            permissions=[Permission(p.permission) for p in model.permissions],
             is_active=model.is_active,
             created_at=model.created_at,
             updated_at=model.updated_at,

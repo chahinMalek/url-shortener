@@ -1,7 +1,6 @@
 from typing import Protocol
 
-from core.entities.users import User
-from core.permissions import Permission
+from core.entities.users import Permission, User
 
 
 class PermissionRepository(Protocol):

@@ -1,7 +1,13 @@
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from enum import Enum
 
-from core.permissions import Permission
+
+class Permission(str, Enum):
+    SHORTEN_URL = "shorten_url"
+    DELETE_URL = "delete_url"
+    VIEW_ANALYTICS = "view_analytics"
+    MANAGE_USERS = "manage_users"
 
 
 @dataclass

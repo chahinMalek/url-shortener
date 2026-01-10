@@ -2,8 +2,7 @@ from datetime import UTC, datetime
 
 import pytest
 
-from core.entities.users import User
-from core.permissions import Permission
+from core.entities.users import Permission, User
 
 
 @pytest.mark.unit

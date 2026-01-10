@@ -1,8 +1,9 @@
 from datetime import UTC, datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
+from core.entities.url import SafetyStatus
 from infra.db.models import Base
 
 
@@ -18,3 +19,9 @@ class UrlModel(Base):
     owner_id: Mapped[str] = mapped_column(
         String(255), ForeignKey("users.user_id"), nullable=False, index=True
     )
+    safety_status: Mapped[str] = mapped_column(
+        String(255), nullable=False, index=True, default=SafetyStatus.PENDING.value
+    )
+    threat_score: Mapped[float | None] = mapped_column(Float, nullable=True)
+    last_scanned_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    classifier_version: Mapped[str | None] = mapped_column(String(255), nullable=True)
