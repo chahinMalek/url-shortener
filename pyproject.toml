@@ -1,7 +1,7 @@
 [project]
 name = "url-shortener"
-version = "0.0.2"
-description = "Simple URL shortener"
+version = "0.0.3"
+description = "Simple URL shortener with ML-powered URL classification"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
