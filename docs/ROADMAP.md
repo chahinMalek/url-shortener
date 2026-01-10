@@ -8,15 +8,15 @@ To enhance safety by preventing the shortening of malicious URLs and providing c
 ---
 
 ## 🏗️ Phase 1: Foundation & Infrastructure
-*   [ ] **Schema Update**:
+*   [x] **Schema Update**:
     *   Add classification fields to `Url` entity and `UrlModel`:
         *   `safety_status`: Enum (PENDING, SAFE, MALICIOUS, SUSPICIOUS)
         *   `threat_score`: Float (0.0 to 1.0)
         *   `last_scanned_at`: DateTime
         *   `classifier_version`: String (to track which model performed the scan)
-*   [ ] **ML Service Layer**:
+*   [x] **ML Service Layer**:
     *   Define a standard interface `BaseUrlClassifier` for all classification models.
-    *   Create a registry to manage different tiers of classifiers.
+    *   Define regex-based classifier as a placeholder or ensemble classifier.
 
 ## ⚡ Phase 2: Tier 1 - Online (Fast) Classification
 *   [ ] **Lighweight Model Implementation**:
