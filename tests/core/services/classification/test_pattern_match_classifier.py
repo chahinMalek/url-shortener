@@ -2,26 +2,26 @@ import pytest
 
 from core.entities.url import SafetyStatus
 from core.services.classification.classifier.base import BaseUrlClassifier
-from core.services.classification.classifier.pattern_match import PatternMatchClassifier
+from core.services.classification.classifier.pattern_match import PatternMatchUrlClassifier
 
 
-class TestPatternMatchClassifier:
+class TestPatternMatchUrlClassifier:
     def test_implements_protocol(self):
-        assert isinstance(PatternMatchClassifier(patterns=[]), BaseUrlClassifier)
+        assert isinstance(PatternMatchUrlClassifier(patterns=[], version="test"), BaseUrlClassifier)
 
     def test_patterns_copied_defensively(self):
         patterns = [r".*malware\.com.*"]
-        classifier = PatternMatchClassifier(patterns=patterns)
+        classifier = PatternMatchUrlClassifier(patterns=patterns, version="test")
         patterns.append(r".*new.*")
-        assert len(classifier.patterns) == 1
+        assert len(classifier._patterns) == 1
 
     def test_get_version(self):
-        classifier = PatternMatchClassifier(patterns=[])
-        assert classifier.get_version() == "PatternMatchClassifier-1.0.0"
+        classifier = PatternMatchUrlClassifier(patterns=[], version="test")
+        assert classifier.key == "PatternMatchUrlClassifier-vtest"
 
     @pytest.mark.asyncio
     async def test_classify_malicious(self):
-        classifier = PatternMatchClassifier(patterns=[r".*malware\.com.*"])
+        classifier = PatternMatchUrlClassifier(patterns=[r".*malware\.com.*"], version="test")
         result = await classifier.classify("https://malware.com/page")
 
         assert result.status == SafetyStatus.MALICIOUS
@@ -29,7 +29,7 @@ class TestPatternMatchClassifier:
 
     @pytest.mark.asyncio
     async def test_classify_pending(self):
-        classifier = PatternMatchClassifier(patterns=[r".*malware\.com.*"])
+        classifier = PatternMatchUrlClassifier(patterns=[r".*malware\.com.*"], version="test")
         result = await classifier.classify("https://example.com/page")
 
         assert result.status == SafetyStatus.PENDING

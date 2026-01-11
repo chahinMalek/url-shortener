@@ -22,6 +22,9 @@ router = APIRouter(prefix="/api/v1/url", tags=["URL"])
         },
         status.HTTP_403_FORBIDDEN: {"description": "Forbidden - Insufficient permissions"},
         status.HTTP_409_CONFLICT: {"description": "Code collision detected."},
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {
+            "description": "URL rejected - potentially malicious"
+        },
         status.HTTP_429_TOO_MANY_REQUESTS: {
             "description": "Rate limit reached - too many requests"
         },

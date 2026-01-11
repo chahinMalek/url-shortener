@@ -5,6 +5,14 @@ from core.services.classification.result import ClassificationResult
 
 @runtime_checkable
 class BaseUrlClassifier(Protocol):
-    async def classify(self, url: str) -> ClassificationResult: ...
+    @property
+    def version(self) -> str: ...
 
-    def get_version(self) -> str: ...
+    @property
+    def name(self) -> str: ...
+
+    @property
+    def key(self) -> str:
+        return f"{self.name}-v{self.version}"
+
+    async def classify(self, url: str) -> ClassificationResult: ...

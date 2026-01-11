@@ -1,6 +1,6 @@
 [project]
 name = "url-shortener"
-version = "0.0.3"
+version = "0.0.4"
 description = "Simple URL shortener with ML-powered URL classification"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -18,6 +18,8 @@ dependencies = [
     "python-multipart>=0.0.9",
     "redis>=7.1.0,<8",
     "email-validator>=2.0.0",
+    "numpy>=1.26,<3",
+    "onnxruntime>=1.17,<2",
 ]
 
 [project.optional-dependencies]
