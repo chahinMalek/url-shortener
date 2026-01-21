@@ -60,3 +60,8 @@ class Settings(BaseSettings):
         le=1440,  # Max 24 hours
         description="Access token expiration time in minutes",
     )
+
+    classifier_model_path: str = Field(
+        default="assets/models/fast_xgb_classifier.onnx",
+        description="Path to the ONNX model file for URL classification",
+    )

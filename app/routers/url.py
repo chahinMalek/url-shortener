@@ -1,10 +1,16 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import RedirectResponse
 from fastapi_limiter.depends import RateLimiter
 
-from app.dependencies.types import CurrentUserDep, HashingServiceDep, UrlRepoDep
+from app.container import get_settings
+from app.dependencies.types import CurrentUserDep, HashingServiceDep, UrlClassifierDep, UrlRepoDep
 from app.schemas import ShortenRequest, ShortenResponse
-from core.entities.url import Url
+from core.entities.url import SafetyStatus, Url
+from core.services.classification import ClassificationError
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/url", tags=["URL"])
 
@@ -36,8 +42,44 @@ async def shorten(
     user: CurrentUserDep,
     hashing_service: HashingServiceDep,
     url_repo: UrlRepoDep,
+    classifier: UrlClassifierDep,
 ):
     long_url = str(request.long_url)
+    settings = get_settings()
+
+    # Tier 1: Fast ML classification (if enabled)
+    safety_status = SafetyStatus.PENDING
+    threat_score: float | None = None
+    classifier_version: str | None = None
+
+    if settings.classifier_enabled:
+        try:
+            result = await classifier.classify(long_url)
+            safety_status = result.status
+            threat_score = result.threat_score
+            classifier_version = result.classifier_version
+
+            if result.is_malicious:
+                logger.warning(
+                    "Rejected malicious URL",
+                    extra={
+                        "url": long_url,
+                        "threat_score": threat_score,
+                        "classifier": classifier_version,
+                        "user_id": user.user_id,
+                    },
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail="URL rejected - potentially malicious",
+                )
+        except ClassificationError as e:
+            # Log but don't block on classification errors - fail open
+            logger.error(
+                "Classification failed, proceeding with PENDING status",
+                extra={"url": long_url, "error": str(e)},
+            )
+
     short_code = hashing_service.generate_hash(long_url)
 
     # check if already exists
@@ -60,6 +102,9 @@ async def shorten(
         long_url=long_url,
         owner_id=user.user_id,
         is_active=True,
+        safety_status=safety_status,
+        threat_score=threat_score,
+        classifier_version=classifier_version,
     )
     await url_repo.add(url)
     return ShortenResponse(
