@@ -28,12 +28,12 @@ class OnnxUrlClassifier(BaseUrlClassifier):
         return self._model_name
 
     @abstractmethod
-    def _build_inputs(self, url: str) -> dict:
+    def build_inputs(self, url: str) -> dict:
         pass
 
     async def classify(self, url: str) -> ClassificationResult:
         try:
-            inputs = self._build_inputs(url)
+            inputs = self.build_inputs(url)
             outputs = self._session.run(None, inputs)
 
             prediction = outputs[0][0]

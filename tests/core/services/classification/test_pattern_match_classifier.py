@@ -7,21 +7,21 @@ from core.services.classification.classifier.pattern_match import PatternMatchUr
 
 class TestPatternMatchUrlClassifier:
     def test_implements_protocol(self):
-        assert isinstance(PatternMatchUrlClassifier(patterns=[], version="test"), BaseUrlClassifier)
+        assert isinstance(PatternMatchUrlClassifier(patterns=[]), BaseUrlClassifier)
 
     def test_patterns_copied_defensively(self):
         patterns = [r".*malware\.com.*"]
-        classifier = PatternMatchUrlClassifier(patterns=patterns, version="test")
+        classifier = PatternMatchUrlClassifier(patterns=patterns)
         patterns.append(r".*new.*")
         assert len(classifier._patterns) == 1
 
-    def test_get_version(self):
-        classifier = PatternMatchUrlClassifier(patterns=[], version="test")
-        assert classifier.key == "PatternMatchUrlClassifier-vtest"
+    def test_get_key(self):
+        classifier = PatternMatchUrlClassifier(patterns=[])
+        assert classifier.key == "pattern_match_classifier_v1.0.0"
 
     @pytest.mark.asyncio
     async def test_classify_malicious(self):
-        classifier = PatternMatchUrlClassifier(patterns=[r".*malware\.com.*"], version="test")
+        classifier = PatternMatchUrlClassifier(patterns=[r".*malware\.com.*"])
         result = await classifier.classify("https://malware.com/page")
 
         assert result.status == SafetyStatus.MALICIOUS
@@ -29,7 +29,7 @@ class TestPatternMatchUrlClassifier:
 
     @pytest.mark.asyncio
     async def test_classify_pending(self):
-        classifier = PatternMatchUrlClassifier(patterns=[r".*malware\.com.*"], version="test")
+        classifier = PatternMatchUrlClassifier(patterns=[r".*malware\.com.*"])
         result = await classifier.classify("https://example.com/page")
 
         assert result.status == SafetyStatus.PENDING
