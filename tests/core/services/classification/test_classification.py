@@ -17,19 +17,19 @@ class TestClassificationResult:
             first_result = ClassificationResult(
                 status=SafetyStatus.SAFE,
                 threat_score=0.1,
-                classifier_version="test-v1.0.0",
+                classifier="test-v1.0.0",
             )
 
             assert first_result.timestamp == now
             assert first_result.status == SafetyStatus.SAFE
             assert first_result.threat_score == 0.1
-            assert first_result.classifier_version == "test-v1.0.0"
+            assert first_result.classifier == "test-v1.0.0"
             assert first_result.details is None
 
         second_result = ClassificationResult(
             status=SafetyStatus.SAFE,
             threat_score=0.1,
-            classifier_version="test-v1.0.0",
+            classifier="test-v1.0.0",
         )
 
         assert second_result.timestamp > now
@@ -39,14 +39,14 @@ class TestClassificationResult:
             ClassificationResult(
                 status=SafetyStatus.SAFE,
                 threat_score=1.5,
-                classifier_version="test-v1.0.0",
+                classifier="test-v1.0.0",
             )
 
     def test_is_malicious(self):
         result = ClassificationResult(
             status=SafetyStatus.MALICIOUS,
             threat_score=0.95,
-            classifier_version="test-v1.0.0",
+            classifier="test-v1.0.0",
         )
         assert result.is_malicious is True
 
@@ -54,7 +54,7 @@ class TestClassificationResult:
         result = ClassificationResult(
             status=SafetyStatus.SAFE,
             threat_score=0.1,
-            classifier_version="test-v1.0.0",
+            classifier="test-v1.0.0",
         )
         assert result.is_safe is True
 
@@ -62,7 +62,7 @@ class TestClassificationResult:
         result = ClassificationResult(
             status=SafetyStatus.PENDING,
             threat_score=0.5,
-            classifier_version="test-v1.0.0",
+            classifier="test-v1.0.0",
         )
         assert result.is_pending is True
 
@@ -70,6 +70,6 @@ class TestClassificationResult:
         result = ClassificationResult(
             status=SafetyStatus.SUSPICIOUS,
             threat_score=0.6,
-            classifier_version="test-v1.0.0",
+            classifier="test-v1.0.0",
         )
         assert result.is_suspicious is True
