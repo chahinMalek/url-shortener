@@ -10,37 +10,22 @@ from core.services.classification.result import ClassificationResult
 
 
 class OnnxUrlClassifier(BaseUrlClassifier):
-    def __init__(
-        self,
-        model_path: Path,
-        version: str,
-        threshold: float = 0.5,
-    ):
+    def __init__(self, model_path: Path):
         self._model_path = model_path
-        self._version = version
-        self._threshold = threshold
-        self._session: ort.InferenceSession | None = None
+        self._model_name = self._model_path.stem
 
-    @property
-    def version(self) -> str:
-        return self._version
-
-    @property
-    def name(self) -> str:
-        return self.__class__.__name__
-
-    def _load_model(self) -> ort.InferenceSession:
-        if self._session is None:
-            if not self._model_path.exists():
-                raise ClassificationError(
-                    f"Model file not found: {self._model_path}",
-                    classifier_version=self.key,
-                )
-            self._session = ort.InferenceSession(
-                str(self._model_path),
-                providers=["CPUExecutionProvider"],
+        if not self._model_path.exists():
+            raise ClassificationError(
+                message=f"Model file not found: {self._model_path}",
             )
-        return self._session
+        self._session: ort.InferenceSession = ort.InferenceSession(
+            str(self._model_path),
+            providers=["CPUExecutionProvider"],
+        )
+
+    @property
+    def key(self) -> str:
+        return self._model_name
 
     @abstractmethod
     def _build_inputs(self, url: str) -> dict:
@@ -48,34 +33,17 @@ class OnnxUrlClassifier(BaseUrlClassifier):
 
     async def classify(self, url: str) -> ClassificationResult:
         try:
-            session = self._load_model()
             inputs = self._build_inputs(url)
-            outputs = session.run(None, inputs)
+            outputs = self._session.run(None, inputs)
 
-            raw_output = outputs[0]
-            if raw_output.ndim == 2 and raw_output.shape[1] == 2:
-                threat_score = float(raw_output[0, 1])
-            else:
-                threat_score = float(raw_output[0])
-
-            if threat_score >= self._threshold:
-                status = SafetyStatus.MALICIOUS
-            else:
-                status = SafetyStatus.PENDING
+            prediction = outputs[0][0]
+            probs = outputs[1][0]
 
             return ClassificationResult(
-                status=status,
-                threat_score=threat_score,
-                classifier_version=self.key,
-                details={"model_path": str(self._model_path)},
+                status=SafetyStatus.MALICIOUS if prediction == 1 else SafetyStatus.PENDING,
+                threat_score=float(probs[1]),
+                classifier=self.key,
             )
 
-        except ClassificationError:
-            raise
-
         except Exception as e:
-            raise ClassificationError(
-                f"ONNX inference failed: {e}",
-                classifier_version=self.key,
-                original_error=e,
-            ) from e
+            raise ClassificationError(f"ONNX inference failed: {e}") from e

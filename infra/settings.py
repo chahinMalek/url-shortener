@@ -46,7 +46,7 @@ class Settings(BaseSettings):
 
     # Auth settings
     secret_key: str = Field(
-        ...,  # Required, no default
+        ...,
         min_length=32,
         description="Secret key for JWT signing. Generate with: openssl rand -hex 32",
     )
@@ -62,6 +62,6 @@ class Settings(BaseSettings):
     )
 
     classifier_model_path: str = Field(
-        default="assets/models/fast_xgb_classifier.onnx",
-        description="Path to the ONNX model file for URL classification",
+        default="assets/models/online_classifier_xgb_v1.0.0.onnx",
+        description="Path to the ONNX model file for online URL classification",
     )

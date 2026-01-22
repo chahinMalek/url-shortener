@@ -4,8 +4,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import RedirectResponse
 from fastapi_limiter.depends import RateLimiter
 
-from app.container import get_settings
-from app.dependencies.types import CurrentUserDep, HashingServiceDep, UrlClassifierDep, UrlRepoDep
+from app.dependencies.types import (
+    CurrentUserDep,
+    HashingServiceDep,
+    UrlClassifierDep,
+    UrlRepoDep,
+    UrlValidatorDep,
+)
 from app.schemas import ShortenRequest, ShortenResponse
 from core.entities.url import SafetyStatus, Url
 from core.services.classification import ClassificationError
@@ -42,43 +47,47 @@ async def shorten(
     user: CurrentUserDep,
     hashing_service: HashingServiceDep,
     url_repo: UrlRepoDep,
+    validator: UrlValidatorDep,
     classifier: UrlClassifierDep,
 ):
     long_url = str(request.long_url)
-    settings = get_settings()
 
-    # Tier 1: Fast ML classification (if enabled)
+    if not validator.is_valid(long_url):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="URL rejected - invalid URL",
+        )
+
     safety_status = SafetyStatus.PENDING
-    threat_score: float | None = None
-    classifier_version: str | None = None
+    threat_score = None
+    classifier_version = None
 
-    if settings.classifier_enabled:
-        try:
-            result = await classifier.classify(long_url)
-            safety_status = result.status
-            threat_score = result.threat_score
-            classifier_version = result.classifier_version
+    try:
+        classification_result = await classifier.classify(long_url)
+        threat_score = classification_result.threat_score
+        classifier_version = classification_result.classifier
 
-            if result.is_malicious:
-                logger.warning(
-                    "Rejected malicious URL",
-                    extra={
-                        "url": long_url,
-                        "threat_score": threat_score,
-                        "classifier": classifier_version,
-                        "user_id": user.user_id,
-                    },
-                )
-                raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                    detail="URL rejected - potentially malicious",
-                )
-        except ClassificationError as e:
-            # Log but don't block on classification errors - fail open
-            logger.error(
-                "Classification failed, proceeding with PENDING status",
-                extra={"url": long_url, "error": str(e)},
+        if classification_result.is_malicious:
+            logger.warning(
+                "Rejected malicious URL",
+                extra={
+                    "url": long_url,
+                    "threat_score": threat_score,
+                    "classifier": classifier_version,
+                    "user_id": user.user_id,
+                },
             )
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="URL rejected - potentially malicious",
+            )
+
+    except ClassificationError as e:
+        # silent fail - log but don't block on classification errors
+        logger.error(
+            "Classification failed, proceeding with PENDING status",
+            extra={"url": long_url, "error": str(e)},
+        )
 
     short_code = hashing_service.generate_hash(long_url)
 
@@ -97,6 +106,7 @@ async def shorten(
             created_at=existing.created_at,
             is_active=existing.is_active,
         )
+
     url = Url(
         short_code=short_code,
         long_url=long_url,

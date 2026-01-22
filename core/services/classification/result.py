@@ -8,7 +8,7 @@ from core.entities.url import SafetyStatus
 class ClassificationResult:
     status: SafetyStatus
     threat_score: float
-    classifier_version: str
+    classifier: str
     timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     details: dict | None = None
 
