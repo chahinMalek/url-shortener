@@ -5,14 +5,18 @@ from argon2.exceptions import VerificationError, VerifyMismatchError
 from jose import JWTError, jwt
 
 from app.schemas.auth import TokenPayload
-from infra.settings import Settings
 
 
 class AuthService:
-    def __init__(self, settings: Settings):
-        self._token_expiration = settings.access_token_expire_minutes
-        self._algorithm = settings.algorithm
-        self._secret_key = settings.secret_key
+    def __init__(
+        self,
+        token_expiration_minutes: int,
+        algorithm: str,
+        secret_key: str,
+    ):
+        self._token_expiration = token_expiration_minutes
+        self._algorithm = algorithm
+        self._secret_key = secret_key
         self._hasher = PasswordHasher(
             time_cost=3,
             memory_cost=64 * 1024,  # 64 MiB
