@@ -12,7 +12,8 @@ from app.dependencies.types import (
     UrlValidatorDep,
 )
 from app.schemas import ShortenRequest, ShortenResponse
-from core.entities.url import SafetyStatus, Url
+from core.entities.url import Url
+from core.enums.safety_status import SafetyStatus
 from core.services.classification import ClassificationError
 
 logger = logging.getLogger(__name__)
@@ -60,12 +61,12 @@ async def shorten(
 
     safety_status = SafetyStatus.PENDING
     threat_score = None
-    classifier_version = None
+    classifier_name = None
 
     try:
         classification_result = await classifier.classify(long_url)
         threat_score = classification_result.threat_score
-        classifier_version = classification_result.classifier
+        classifier_name = classification_result.classifier
 
         if classification_result.is_malicious:
             logger.warning(
@@ -73,7 +74,7 @@ async def shorten(
                 extra={
                     "url": long_url,
                     "threat_score": threat_score,
-                    "classifier": classifier_version,
+                    "classifier": classifier_name,
                     "user_id": user.user_id,
                 },
             )
@@ -114,7 +115,7 @@ async def shorten(
         is_active=True,
         safety_status=safety_status,
         threat_score=threat_score,
-        classifier_version=classifier_version,
+        classifier=classifier_name,
     )
     await url_repo.add(url)
     return ShortenResponse(

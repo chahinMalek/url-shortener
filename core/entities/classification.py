@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
-from core.entities.url import SafetyStatus
+from core.enums.safety_status import SafetyStatus
 
 
 @dataclass

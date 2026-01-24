@@ -1,8 +1,8 @@
 import re
 
-from core.entities.url import SafetyStatus
+from core.entities.classification import ClassificationResult
+from core.enums.safety_status import SafetyStatus
 from core.services.classification.classifier.base import BaseUrlClassifier
-from core.services.classification.result import ClassificationResult
 
 
 class PatternMatchUrlClassifier(BaseUrlClassifier):

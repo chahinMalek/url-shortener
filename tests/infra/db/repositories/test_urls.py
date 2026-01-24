@@ -3,7 +3,8 @@ from datetime import UTC, datetime, timedelta
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.entities.url import SafetyStatus, Url
+from core.entities.url import Url
+from core.enums.safety_status import SafetyStatus
 from infra.db.repositories.urls import PostgresUrlRepository
 
 
@@ -28,7 +29,7 @@ class TestPostgresUrlRepository:
         assert added_url.owner_id == "user_1"
         assert added_url.safety_status == SafetyStatus.PENDING
         assert added_url.threat_score is None
-        assert added_url.last_scanned_at is None
+        assert added_url.classified_at is None
         assert isinstance(added_url.created_at, datetime)
 
     async def test_get_by_code(self, repository: PostgresUrlRepository, db_session: AsyncSession):
@@ -81,14 +82,14 @@ class TestPostgresUrlRepository:
         await db_session.commit()
 
         updated = await repository.set_safety_status(
-            "safe1234", SafetyStatus.SAFE, threat_score=0.1, classifier_version="v1.0"
+            "safe1234", SafetyStatus.SAFE, threat_score=0.1, classifier="v1.0"
         )
 
         assert updated is not None
         assert updated.safety_status == SafetyStatus.SAFE
         assert updated.threat_score == 0.1
-        assert updated.classifier_version == "v1.0"
-        assert updated.last_scanned_at is not None
+        assert updated.classifier == "v1.0"
+        assert updated.classified_at is not None
 
     async def test_set_safety_status_malicious(
         self, repository: PostgresUrlRepository, db_session: AsyncSession
@@ -102,7 +103,7 @@ class TestPostgresUrlRepository:
         await db_session.commit()
 
         updated = await repository.set_safety_status(
-            "mal12345", SafetyStatus.MALICIOUS, threat_score=0.95, classifier_version="v1.0"
+            "mal12345", SafetyStatus.MALICIOUS, threat_score=0.95, classifier="v1.0"
         )
 
         assert updated is not None
@@ -122,12 +123,12 @@ class TestPostgresUrlRepository:
 
         with pytest.raises(ValueError, match="Cannot set safety status to PENDING"):
             await repository.set_safety_status(
-                "pend1234", SafetyStatus.PENDING, threat_score=0.0, classifier_version="v1.0"
+                "pend1234", SafetyStatus.PENDING, threat_score=0.0, classifier="v1.0"
             )
 
     async def test_set_safety_status_not_found(self, repository: PostgresUrlRepository):
         result = await repository.set_safety_status(
-            "nonexist", SafetyStatus.SAFE, threat_score=0.1, classifier_version="v1.0"
+            "nonexist", SafetyStatus.SAFE, threat_score=0.1, classifier="v1.0"
         )
 
         assert result is None
@@ -141,8 +142,8 @@ class TestPostgresUrlRepository:
             owner_id="user_1",
             safety_status=SafetyStatus.SAFE,
             threat_score=0.2,
-            last_scanned_at=datetime.now(UTC),
-            classifier_version="v1.0",
+            classified_at=datetime.now(UTC),
+            classifier="v1.0",
         )
         await repository.add(url)
         await db_session.commit()
@@ -152,8 +153,8 @@ class TestPostgresUrlRepository:
         assert reset is not None
         assert reset.safety_status == SafetyStatus.PENDING
         assert reset.threat_score is None
-        assert reset.last_scanned_at is None
-        assert reset.classifier_version is None
+        assert reset.classified_at is None
+        assert reset.classifier is None
 
     async def test_reset_safety_status_not_found(self, repository: PostgresUrlRepository):
         result = await repository.reset_safety_status("nonexist")
@@ -211,8 +212,8 @@ class TestPostgresUrlRepository:
             owner_id="user_1",
             safety_status=SafetyStatus.SAFE,
             threat_score=0.1,
-            last_scanned_at=datetime.now(UTC),
-            classifier_version="v1.0",
+            classified_at=datetime.now(UTC),
+            classifier="v1.0",
         )
         await repository.add(url1)
         await repository.add(url2)
@@ -283,8 +284,8 @@ class TestPostgresUrlRepository:
             owner_id="user_1",
             safety_status=SafetyStatus.SAFE,
             threat_score=0.1,
-            last_scanned_at=now - timedelta(hours=0),
-            classifier_version="v1.0",
+            classified_at=now - timedelta(hours=0),
+            classifier="v1.0",
         )
         url2 = Url(
             short_code="safe0002",
@@ -292,8 +293,8 @@ class TestPostgresUrlRepository:
             owner_id="user_1",
             safety_status=SafetyStatus.SAFE,
             threat_score=0.1,
-            last_scanned_at=now - timedelta(hours=1),
-            classifier_version="v1.0",
+            classified_at=now - timedelta(hours=1),
+            classifier="v1.0",
         )
         url3 = Url(
             short_code="safe0003",
@@ -301,8 +302,8 @@ class TestPostgresUrlRepository:
             owner_id="user_1",
             safety_status=SafetyStatus.SAFE,
             threat_score=0.1,
-            last_scanned_at=now - timedelta(hours=2),
-            classifier_version="v1.0",
+            classified_at=now - timedelta(hours=2),
+            classifier="v1.0",
         )
         await repository.add(url1)
         await repository.add(url2)
@@ -328,8 +329,8 @@ class TestPostgresUrlRepository:
             owner_id="user_1",
             safety_status=SafetyStatus.SAFE,
             threat_score=0.1,
-            last_scanned_at=now - timedelta(days=7),
-            classifier_version="v1.0",
+            classified_at=now - timedelta(days=7),
+            classifier="v1.0",
         )
         recent_url = Url(
             short_code="new00001",
@@ -337,8 +338,8 @@ class TestPostgresUrlRepository:
             owner_id="user_1",
             safety_status=SafetyStatus.SAFE,
             threat_score=0.1,
-            last_scanned_at=now - timedelta(hours=1),
-            classifier_version="v1.0",
+            classified_at=now - timedelta(hours=1),
+            classifier="v1.0",
         )
         await repository.add(old_url)
         await repository.add(recent_url)
@@ -360,8 +361,8 @@ class TestPostgresUrlRepository:
             owner_id="user_1",
             safety_status=SafetyStatus.SAFE,
             threat_score=0.1,
-            last_scanned_at=now - timedelta(days=7),
-            classifier_version="v1.0",
+            classified_at=now - timedelta(days=7),
+            classifier="v1.0",
         )
         recent_url = Url(
             short_code="new00002",
@@ -369,8 +370,8 @@ class TestPostgresUrlRepository:
             owner_id="user_1",
             safety_status=SafetyStatus.SAFE,
             threat_score=0.1,
-            last_scanned_at=now - timedelta(hours=1),
-            classifier_version="v1.0",
+            classified_at=now - timedelta(hours=1),
+            classifier="v1.0",
         )
         await repository.add(old_url)
         await repository.add(recent_url)
@@ -392,8 +393,8 @@ class TestPostgresUrlRepository:
             owner_id="user_1",
             safety_status=SafetyStatus.SAFE,
             threat_score=0.1,
-            last_scanned_at=now - timedelta(hours=0),
-            classifier_version="v1.0",
+            classified_at=now - timedelta(hours=0),
+            classifier="v1.0",
         )
         url2 = Url(
             short_code="sort0001",
@@ -401,8 +402,8 @@ class TestPostgresUrlRepository:
             owner_id="user_1",
             safety_status=SafetyStatus.SAFE,
             threat_score=0.1,
-            last_scanned_at=now - timedelta(hours=1),
-            classifier_version="v1.0",
+            classified_at=now - timedelta(hours=1),
+            classifier="v1.0",
         )
         url3 = Url(
             short_code="sort0002",
@@ -410,8 +411,8 @@ class TestPostgresUrlRepository:
             owner_id="user_1",
             safety_status=SafetyStatus.SAFE,
             threat_score=0.1,
-            last_scanned_at=now - timedelta(hours=2),
-            classifier_version="v1.0",
+            classified_at=now - timedelta(hours=2),
+            classifier="v1.0",
         )
         await repository.add(url1)
         await repository.add(url2)
@@ -434,8 +435,8 @@ class TestPostgresUrlRepository:
             owner_id="user_1",
             safety_status=SafetyStatus.SAFE,
             threat_score=0.1,
-            last_scanned_at=now - timedelta(hours=0),
-            classifier_version="v1.0",
+            classified_at=now - timedelta(hours=0),
+            classifier="v1.0",
         )
         url2 = Url(
             short_code="desc0001",
@@ -443,8 +444,8 @@ class TestPostgresUrlRepository:
             owner_id="user_1",
             safety_status=SafetyStatus.SAFE,
             threat_score=0.1,
-            last_scanned_at=now - timedelta(hours=1),
-            classifier_version="v1.0",
+            classified_at=now - timedelta(hours=1),
+            classifier="v1.0",
         )
         url3 = Url(
             short_code="desc0002",
@@ -452,8 +453,8 @@ class TestPostgresUrlRepository:
             owner_id="user_1",
             safety_status=SafetyStatus.SAFE,
             threat_score=0.1,
-            last_scanned_at=now - timedelta(hours=2),
-            classifier_version="v1.0",
+            classified_at=now - timedelta(hours=2),
+            classifier="v1.0",
         )
         await repository.add(url1)
         await repository.add(url2)

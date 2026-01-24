@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from core.entities.url import SafetyStatus
+from core.enums.safety_status import SafetyStatus
 from core.services.classification import ClassificationResult
 
 

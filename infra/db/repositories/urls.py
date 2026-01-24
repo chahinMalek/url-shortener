@@ -4,7 +4,8 @@ from typing import Literal
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.entities.url import SafetyStatus, Url
+from core.entities.url import Url
+from core.enums.safety_status import SafetyStatus
 from core.repositories.urls import UrlRepository
 from infra.db.models import UrlModel
 
@@ -22,8 +23,8 @@ class PostgresUrlRepository(UrlRepository):
             is_active=model.is_active,
             safety_status=SafetyStatus(model.safety_status),
             threat_score=model.threat_score,
-            last_scanned_at=model.last_scanned_at,
-            classifier_version=model.classifier_version,
+            classified_at=model.classified_at,
+            classifier=model.classifier,
         )
 
     def _to_model(self, entity: Url) -> UrlModel:
@@ -35,8 +36,8 @@ class PostgresUrlRepository(UrlRepository):
             is_active=entity.is_active,
             safety_status=entity.safety_status.value,
             threat_score=entity.threat_score,
-            last_scanned_at=entity.last_scanned_at,
-            classifier_version=entity.classifier_version,
+            classified_at=entity.classified_at,
+            classifier=entity.classifier,
         )
 
     async def add(self, url: Url) -> Url:
@@ -57,7 +58,7 @@ class PostgresUrlRepository(UrlRepository):
         short_code: str,
         status: SafetyStatus,
         threat_score: float,
-        classifier_version: str,
+        classifier: str,
     ) -> Url | None:
         """Updates the URL's safety status and related scan data."""
 
@@ -71,9 +72,9 @@ class PostgresUrlRepository(UrlRepository):
             .where(UrlModel.short_code == short_code)
             .values(
                 safety_status=status.value,
-                last_scanned_at=datetime.now(UTC),
+                classified_at=datetime.now(UTC),
                 threat_score=threat_score,
-                classifier_version=classifier_version,
+                classifier=classifier,
             )
             .returning(UrlModel)
         )
@@ -87,9 +88,9 @@ class PostgresUrlRepository(UrlRepository):
             .where(UrlModel.short_code == short_code)
             .values(
                 safety_status=SafetyStatus.PENDING.value,
-                last_scanned_at=None,
+                classified_at=None,
                 threat_score=None,
-                classifier_version=None,
+                classifier=None,
             )
             .returning(UrlModel)
         )
@@ -129,18 +130,16 @@ class PostgresUrlRepository(UrlRepository):
         query = select(UrlModel).where(UrlModel.safety_status == status.value)
 
         if scanned_before is not None:
-            query = query.where(UrlModel.last_scanned_at < scanned_before)
+            query = query.where(UrlModel.classified_at < scanned_before)
 
         if scanned_after is not None:
-            query = query.where(UrlModel.last_scanned_at > scanned_after)
+            query = query.where(UrlModel.classified_at > scanned_after)
 
         if start_after is not None:
             query = query.where(UrlModel.short_code > start_after)
 
         order_col = (
-            UrlModel.last_scanned_at.asc()
-            if sort_order == "asc"
-            else UrlModel.last_scanned_at.desc()
+            UrlModel.classified_at.asc() if sort_order == "asc" else UrlModel.classified_at.desc()
         )
         query = query.order_by(order_col, UrlModel.short_code).limit(limit)
 

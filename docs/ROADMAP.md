@@ -12,8 +12,8 @@ To enhance safety by preventing the shortening of malicious URLs and providing c
     *   Add classification fields to `Url` entity and `UrlModel`:
         *   `safety_status`: Enum (PENDING, SAFE, MALICIOUS, SUSPICIOUS)
         *   `threat_score`: Float (0.0 to 1.0)
-        *   `last_scanned_at`: DateTime
-        *   `classifier_version`: String (to track which model performed the scan)
+        *   `classified_at`: DateTime
+        *   `classifier`: String (to track which model performed the scan)
 *   [x] **ML Service Layer**:
     *   Define a standard interface `BaseUrlClassifier` for all classification models.
     *   Define regex-based classifier as a placeholder or ensemble classifier.
@@ -24,7 +24,7 @@ To enhance safety by preventing the shortening of malicious URLs and providing c
     *   Target latency: < 50ms.
 *   [ ] **API Integration**:
     *   Update the `/api/v1/url/shorten` endpoint to call the Tier 1 classifier.
-    *   Reject URLs classified as `MALICIOUS` with a `400 Bad Request`.
+    *   Reject URLs classified as `MALICIOUS` with a `422 Unprocessable Content`.
     *   Log classification results for further training.
 
 ## 🔍 Phase 3: Tier 2 - Offline (Deep) Classification

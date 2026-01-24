@@ -3,7 +3,7 @@ from datetime import UTC, datetime
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from core.entities.url import SafetyStatus
+from core.enums.safety_status import SafetyStatus
 from infra.db.models import Base
 
 
@@ -23,5 +23,5 @@ class UrlModel(Base):
         String(255), nullable=False, index=True, default=SafetyStatus.PENDING.value
     )
     threat_score: Mapped[float | None] = mapped_column(Float, nullable=True)
-    last_scanned_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    classifier_version: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    classified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    classifier: Mapped[str | None] = mapped_column(String(255), nullable=True)

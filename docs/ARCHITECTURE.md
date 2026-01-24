@@ -56,7 +56,7 @@ sequenceDiagram
     API->>ML1: Classify(long_url)
     ML1-->>API: Result (SAFE/MALICIOUS)
     alt is MALICIOUS
-        API-->>User: 400 Bad Request
+        API-->>User: 422 Unprocessable Content
     else is SAFE
         API->>DB: Save URL (status=SAFE)
         DB-->>API: Success

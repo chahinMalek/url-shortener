@@ -1,7 +1,8 @@
 from datetime import datetime
 from typing import Literal, Protocol
 
-from core.entities.url import SafetyStatus, Url
+from core.entities.url import Url
+from core.enums.safety_status import SafetyStatus
 
 
 class UrlRepository(Protocol):
@@ -30,7 +31,7 @@ class UrlRepository(Protocol):
         short_code: str,
         status: SafetyStatus,
         threat_score: float,
-        classifier_version: str,
+        classifier: str,
     ) -> Url | None: ...
 
     async def reset_safety_status(self, short_code: str) -> Url | None: ...

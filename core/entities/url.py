@@ -1,13 +1,7 @@
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
 
-
-class SafetyStatus(str, Enum):
-    PENDING = "pending"
-    SAFE = "safe"
-    MALICIOUS = "malicious"
-    SUSPICIOUS = "suspicious"
+from core.enums.safety_status import SafetyStatus
 
 
 @dataclass
@@ -19,5 +13,5 @@ class Url:
     is_active: bool = True
     safety_status: SafetyStatus = field(default_factory=lambda: SafetyStatus.PENDING)
     threat_score: float | None = None
-    last_scanned_at: datetime | None = None
-    classifier_version: str | None = None
+    classified_at: datetime | None = None
+    classifier: str | None = None
