@@ -5,6 +5,7 @@ from fastapi.responses import RedirectResponse
 from fastapi_limiter.depends import RateLimiter
 
 from app.dependencies.types import (
+    ClassificationResultRepoDep,
     CurrentUserDep,
     HashingServiceDep,
     UrlClassifierDep,
@@ -48,6 +49,7 @@ async def shorten(
     user: CurrentUserDep,
     hashing_service: HashingServiceDep,
     url_repo: UrlRepoDep,
+    classification_results_repo: ClassificationResultRepoDep,
     validator: UrlValidatorDep,
     classifier: UrlClassifierDep,
 ):
