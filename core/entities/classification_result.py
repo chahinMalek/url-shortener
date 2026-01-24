@@ -10,11 +10,30 @@ class ClassificationResult:
     threat_score: float
     classifier: str
     timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
+    latency_ms: float | None = None
+    success: bool = True
+    error: str | None = None
     details: dict | None = None
 
     def __post_init__(self):
         if not 0.0 <= self.threat_score <= 1.0:
             raise ValueError(f"threat_score must be between 0.0 and 1.0, got {self.threat_score}")
+
+    @classmethod
+    def failure(
+        cls,
+        classifier: str,
+        error: str,
+        latency_ms: float | None = None,
+    ) -> "ClassificationResult":
+        return cls(
+            status=SafetyStatus.PENDING,
+            threat_score=0.0,
+            classifier=classifier,
+            latency_ms=latency_ms,
+            success=False,
+            error=error,
+        )
 
     @property
     def is_malicious(self) -> bool:

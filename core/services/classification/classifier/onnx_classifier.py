@@ -3,7 +3,7 @@ from pathlib import Path
 
 import onnxruntime as ort
 
-from core.entities.classification import ClassificationResult
+from core.entities.classification_result import ClassificationResult
 from core.enums.safety_status import SafetyStatus
 from core.services.classification.classifier.base import BaseUrlClassifier
 from core.services.classification.exceptions import ClassificationError

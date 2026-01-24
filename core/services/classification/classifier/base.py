@@ -1,6 +1,6 @@
 from typing import Protocol, runtime_checkable
 
-from core.entities.classification import ClassificationResult
+from core.entities.classification_result import ClassificationResult
 
 
 @runtime_checkable
