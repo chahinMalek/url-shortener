@@ -1,4 +1,5 @@
 import logging
+import time
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import RedirectResponse
@@ -13,6 +14,7 @@ from app.dependencies.types import (
     UrlValidatorDep,
 )
 from app.schemas import ShortenRequest, ShortenResponse
+from core.entities.classification_result import ClassificationResult
 from core.entities.url import Url
 from core.enums.safety_status import SafetyStatus
 from core.services.classification import ClassificationError
@@ -67,7 +69,15 @@ async def shorten(
     classifier_name = None
 
     try:
-        classification_result = await classifier.classify(long_url)
+        start_time = time.perf_counter()
+        classifier_result = await classifier.classify(long_url)
+        latency_ms = (time.perf_counter() - start_time) * 1000
+
+        classification_result = ClassificationResult.from_classifier_result(
+            classifier_result,
+            latency_ms=latency_ms,
+        )
+
         threat_score = classification_result.threat_score
         classifier_name = classification_result.classifier
         safety_status = classification_result.status

@@ -1,23 +1,45 @@
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
+from core.entities.classifier_result import ClassifierResult
 from core.enums.safety_status import SafetyStatus
 
 
 @dataclass
-class ClassificationResult:
-    status: SafetyStatus
-    threat_score: float
-    classifier: str
+class ClassificationResult(ClassifierResult):
+    """
+    Full classification result with metadata for persistence.
+    Extends ClassifierResult with additional tracking information.
+    """
+
     timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     latency_ms: float | None = None
     success: bool = True
     error: str | None = None
-    details: dict | None = None
 
-    def __post_init__(self):
-        if not 0.0 <= self.threat_score <= 1.0:
-            raise ValueError(f"threat_score must be between 0.0 and 1.0, got {self.threat_score}")
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
+    latency_ms: float | None = None
+    success: bool = True
+    error: str | None = None
+
+    @classmethod
+    def from_classifier_result(
+        cls,
+        classifier_result: ClassifierResult,
+        latency_ms: float | None = None,
+        timestamp: datetime | None = None,
+    ) -> "ClassificationResult":
+        """Create a ClassificationResult from a ClassifierResult with metadata."""
+        return cls(
+            status=classifier_result.status,
+            threat_score=classifier_result.threat_score,
+            classifier=classifier_result.classifier,
+            details=classifier_result.details,
+            latency_ms=latency_ms,
+            timestamp=timestamp or datetime.now(UTC),
+            success=True,
+            error=None,
+        )
 
     @classmethod
     def failure(
@@ -34,19 +56,3 @@ class ClassificationResult:
             success=False,
             error=error,
         )
-
-    @property
-    def is_malicious(self) -> bool:
-        return self.status == SafetyStatus.MALICIOUS
-
-    @property
-    def is_safe(self) -> bool:
-        return self.status == SafetyStatus.SAFE
-
-    @property
-    def is_pending(self) -> bool:
-        return self.status == SafetyStatus.PENDING
-
-    @property
-    def is_suspicious(self) -> bool:
-        return self.status == SafetyStatus.SUSPICIOUS

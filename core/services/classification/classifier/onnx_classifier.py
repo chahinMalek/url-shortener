@@ -3,7 +3,7 @@ from pathlib import Path
 
 import onnxruntime as ort
 
-from core.entities.classification_result import ClassificationResult
+from core.entities.classifier_result import ClassifierResult
 from core.enums.safety_status import SafetyStatus
 from core.services.classification.classifier.base import BaseUrlClassifier
 from core.services.classification.exceptions import ClassificationError
@@ -31,7 +31,7 @@ class OnnxUrlClassifier(BaseUrlClassifier):
     def build_inputs(self, url: str) -> dict:
         pass
 
-    async def classify(self, url: str) -> ClassificationResult:
+    async def classify(self, url: str) -> ClassifierResult:
         try:
             inputs = self.build_inputs(url)
             outputs = self._session.run(None, inputs)
@@ -39,7 +39,7 @@ class OnnxUrlClassifier(BaseUrlClassifier):
             prediction = outputs[0][0]
             probs = outputs[1][0]
 
-            return ClassificationResult(
+            return ClassifierResult(
                 status=SafetyStatus.MALICIOUS if prediction == 1 else SafetyStatus.PENDING,
                 threat_score=float(probs[1]),
                 classifier=self.key,
