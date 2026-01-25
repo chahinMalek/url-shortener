@@ -11,7 +11,7 @@ class TestClassificationResult:
     def test_init_defaults(self):
         now = datetime.now(UTC)
 
-        with patch("core.entities.classification.datetime") as mock_datetime:
+        with patch("core.entities.classification_result.datetime") as mock_datetime:
             mock_datetime.now.return_value = now
             result = ClassificationResult(
                 status=SafetyStatus.SAFE,

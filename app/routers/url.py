@@ -61,6 +61,7 @@ async def shorten(
             detail="URL rejected - invalid URL",
         )
 
+    classification_result = None
     safety_status = SafetyStatus.PENDING
     threat_score = None
     classifier_name = None
@@ -69,6 +70,7 @@ async def shorten(
         classification_result = await classifier.classify(long_url)
         threat_score = classification_result.threat_score
         classifier_name = classification_result.classifier
+        safety_status = classification_result.status
 
         if classification_result.is_malicious:
             logger.warning(
@@ -95,31 +97,35 @@ async def shorten(
     short_code = hashing_service.generate_hash(long_url)
 
     # check if already exists
-    existing = await url_repo.get_by_code(short_code)
-    if existing:
+    url = await url_repo.get_by_code(short_code)
+
+    # not exists - create new
+    if url is None:
+        url = Url(
+            short_code=short_code,
+            long_url=long_url,
+            owner_id=user.user_id,
+            is_active=True,
+            safety_status=safety_status,
+            threat_score=threat_score,
+            classified_at=classification_result.timestamp if classification_result else None,
+            classifier=classifier_name,
+        )
+        await url_repo.add(url)
+
+    # exists but long_url differs
+    elif url.long_url != long_url:
         # fixme: returning error on collision
-        if existing.long_url != long_url:
+        if url.long_url != long_url:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Code collision detected",
             )
-        return ShortenResponse(
-            long_url=existing.long_url,
-            short_url=existing.short_code,
-            created_at=existing.created_at,
-            is_active=existing.is_active,
-        )
 
-    url = Url(
-        short_code=short_code,
-        long_url=long_url,
-        owner_id=user.user_id,
-        is_active=True,
-        safety_status=safety_status,
-        threat_score=threat_score,
-        classifier=classifier_name,
-    )
-    await url_repo.add(url)
+    # store classification result if available
+    if classification_result:
+        await classification_results_repo.add(short_code, classification_result)
+
     return ShortenResponse(
         long_url=url.long_url,
         short_url=url.short_code,
