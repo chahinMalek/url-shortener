@@ -86,3 +86,15 @@ class TestPostgresUserRepository:
 
         assert success is True
         assert await repository.get_by_id(user_id) is None
+
+    async def test_update_user_not_found(
+        self, repository: PostgresUserRepository, db_session: AsyncSession
+    ):
+        non_existent_user = User(
+            user_id="non_existent_user",
+            email="notfound@example.com",
+            password_hash="pw",
+        )
+
+        with pytest.raises(ValueError, match="User with id non_existent_user not found"):
+            await repository.update(non_existent_user)

@@ -83,3 +83,17 @@ class TestHashingService:
         code2 = hashing_service.generate_hash("  https://example.com  ")
 
         assert code1 == code2
+
+    def test_encode_base62_zero(self, hashing_service: HashingService):
+        result = hashing_service._encode_base62(0)
+
+        assert len(result) == 8
+        assert result == "00000000"
+
+    def test_encode_base62_small_number(self, hashing_service: HashingService):
+        result = hashing_service._encode_base62(5)
+
+        assert len(result) == 8
+        # Result is reversed, so small number with padding ends with the digit
+        assert result.endswith("5")
+        assert result.startswith("0000000")

@@ -96,3 +96,43 @@ class TestClassificationResult:
             classifier="test-v1.0.0",
         )
         assert result.is_suspicious is True
+
+    def test_from_classifier_result(self):
+        from core.entities.classifier_result import ClassifierResult
+
+        classifier_result = ClassifierResult(
+            status=SafetyStatus.MALICIOUS,
+            threat_score=0.85,
+            classifier="pattern-match-v1.0.0",
+            details={"pattern": "phishing"},
+        )
+
+        result = ClassificationResult.from_classifier_result(
+            classifier_result,
+            latency_ms=15.3,
+        )
+
+        assert result.status == SafetyStatus.MALICIOUS
+        assert result.threat_score == 0.85
+        assert result.classifier == "pattern-match-v1.0.0"
+        assert result.details == {"pattern": "phishing"}
+        assert result.latency_ms == 15.3
+        assert result.success is True
+        assert result.error is None
+
+    def test_from_classifier_result_with_custom_timestamp(self):
+        from core.entities.classifier_result import ClassifierResult
+
+        classifier_result = ClassifierResult(
+            status=SafetyStatus.SAFE,
+            threat_score=0.05,
+            classifier="test-v1.0.0",
+        )
+
+        custom_time = datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC)
+        result = ClassificationResult.from_classifier_result(
+            classifier_result,
+            timestamp=custom_time,
+        )
+
+        assert result.timestamp == custom_time

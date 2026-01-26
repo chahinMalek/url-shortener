@@ -7,6 +7,8 @@ from core.services.classification.classifier.onnx_classifier import OnnxUrlClass
 
 
 class OnlineClassifierV1(OnnxUrlClassifier):
+    NUM_FEATURES = 19
+
     def build_inputs(self, url: str) -> dict:
         features = {}
         parsed_url = urlparse(url)
