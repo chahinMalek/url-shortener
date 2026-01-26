@@ -34,7 +34,11 @@ This project uses `uv` for dependency management.
     ```
 4.  **Run tests**:
     ```bash
-    pytest
+    uv run pytest
+    ```
+5.  **Running pytest with coverage report**:
+    ```bash
+    uv run pytest --cov=core --cov=infra --cov-report=term-missing tests/
     ```
 
 ## Style Guidelines
