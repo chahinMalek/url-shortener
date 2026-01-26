@@ -1,5 +1,5 @@
 from pathlib import Path
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -15,7 +15,19 @@ class TestOnnxClassifier:
 
     @pytest.fixture
     def classifier(self, model_path):
-        return OnlineClassifierV1(model_path=model_path)
+        # mock the model file existence check (purpose: ci compatibility)
+        with patch.object(Path, "exists", return_value=True):
+            # mock the ONNX InferenceSession
+            with patch(
+                "core.services.classification.classifier.onnx_classifier.ort.InferenceSession"
+            ) as mock_session_class:
+                mock_session = Mock()
+                # set default return value for session.run() - prediction=0, probs=[0.9, 0.1]
+                mock_session.run.return_value = [[0], [[0.9, 0.1]]]
+                mock_session_class.return_value = mock_session
+
+                classifier = OnlineClassifierV1(model_path=model_path)
+                return classifier
 
     def test_init_with_valid_model(self, classifier, model_path):
         assert classifier._model_path == model_path
