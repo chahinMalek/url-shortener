@@ -12,7 +12,7 @@ A modern, fast, and secure URL shortening system built with FastAPI and enhanced
 
 ## 🚀 Vision: Safety First
 The core philosophy of this project is to provide more than just a redirection service. We aim to protect users from phishing and malware by integrating intelligent classification models at two levels:
-1.  **⚡ Tier 1 (Online)**: A lightning-fast check performed during the shortening request to block known or obvious threats immediately.
+1.  **⚡ Tier 1 (Online)**: A lightning-fast XGBoost classifier (via ONNX) that performs real-time checks during shortening requests, blocking known threats with <50ms latency.
 2.  **🔍 Tier 2 (Offline)**: A deep-learning based re-scan of newly added URLs to detect sophisticated threats that might have bypassed the initial check.
 
 ---

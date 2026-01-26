@@ -9,8 +9,11 @@ This document describes the high-level architecture of the URL Shortener and how
 - **`auth.py`**: Manages user authentication and registration.
 
 ### 2. Core Logic (`core/`)
-- **`entities/`**: Domain models (e.g., `Url`, `User`).
-- **`services/`**: Business logic (e.g., `HashingService`).
+- **`entities/`**: Domain models (e.g., `Url`, `User`, `ClassificationResult`).
+- **`services/`**: Business logic (e.g., `HashingService`, `UrlValidationService`).
+- **`services/classification/`**: ML-powered URL classification system.
+  - **`classifier/`**: Classifier implementations (`OnlineClassifier`, `ONNXClassifier`).
+  - Feature extraction and model inference logic.
 
 ### 3. Infrastructure (`infra/`)
 - **`db/models/`**: SQLAlchemy models for database persistence.
@@ -23,13 +26,19 @@ This document describes the high-level architecture of the URL Shortener and how
 
 The ML classification will follow a **2-tier approach** to balance latency and accuracy.
 
-### ⚡ Tier 1: Synchronous Classification (Fast)
+### ⚡ Tier 1: Synchronous Classification (Fast) ✅ IMPLEMENTED
 - **Location**: Triggered within the `url.shorten` endpoint.
+- **Implementation**: `OnlineClassifier` using XGBoost model with ONNX runtime.
 - **Flow**:
     1. User submits a long URL.
-    2. API calls the **Fast Classifier**.
-    3. If `MALICIOUS`, return `400 Bad Request` immediately.
-    4. If `SAFE` or `PENDING`, create short code and save to DB.
+    2. API calls the **Fast Classifier** (`OnlineClassifier`).
+    3. If `MALICIOUS`, return `422 Unprocessable Entity` immediately.
+    4. If `SAFE` or `SUSPICIOUS`, create short code and save to DB with classification results.
+- **Features**:
+    - XGBoost model inference via ONNX (< 50ms latency).
+    - Pattern-based detection for known malicious indicators.
+    - Threat score calculation (0.0 to 1.0).
+    - Database persistence of classification results.
 - **Goal**: Catch obvious phishing attempts and known malicious domains with minimal overhead.
 
 ### 🔍 Tier 2: Asynchronous Classification (Deep)

@@ -19,13 +19,17 @@ To enhance safety by preventing the shortening of malicious URLs and providing c
     *   Define regex-based classifier as a placeholder or ensemble classifier.
 
 ## ⚡ Phase 2: Tier 1 - Online (Fast) Classification
-*   [ ] **Lighweight Model Implementation**:
+*   [x] **Lighweight Model Implementation**:
     *   Develop/Integrate a fast classifier (e.g., using domain blocklists, regex-based heuristics, or a lightweight Random Forest model).
-    *   Target latency: < 50ms.
-*   [ ] **API Integration**:
+    *   Implementing `OnlineClassifier` using XGBoost with ONNX runtime for fast inference.
+    *   Added malicious pattern matching for known threat indicators.
+*   [x] **API Integration**:
     *   Update the `/api/v1/url/shorten` endpoint to call the Tier 1 classifier.
     *   Reject URLs classified as `MALICIOUS` with a `422 Unprocessable Content`.
     *   Log classification results for further training.
+    *   Integrated classifier service into URL shortening endpoint.
+    *   Added proper error handling and response codes for malicious URLs.
+    *   Classification results are now stored in the database with threat scores and timestamps.
 
 ## 🔍 Phase 3: Tier 2 - Offline (Deep) Classification
 *   [ ] **Heavyweight Model Implementation**:
