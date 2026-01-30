@@ -21,7 +21,7 @@ class WorkerSettings(BaseSettings):
     )
 
     BERT_MODEL_PATH: str = Field(
-        default="assets/models/urlbert_classifier_v4/model.onnx",
+        default="assets/models/urlbert_classifier_v4/urlbert_classifier_v4.onnx",
         description="Path to ONNX model file",
     )
     BERT_TOKENIZER_PATH: str = Field(
