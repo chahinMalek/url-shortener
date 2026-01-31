@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     # Database settings
     database_url: str = Field(
         ...,
-        description="PostgreSQL connection string (e.g., postgresql+asyncpg://user:pass@host:5432/db)",
+        description="PostgreSQL async connection string (required, e.g., postgresql+asyncpg://user:pass@host:5432/db)",
     )
     database_echo: bool = Field(
         default=False,

@@ -9,8 +9,8 @@ logger = get_logger(__name__)
 
 celery_app = Celery(
     "url_classification_worker",
-    broker=settings.REDIS_URL,
-    backend=settings.REDIS_URL,
+    broker=settings.redis_url,
+    backend=settings.redis_url,
     include=["workers.tasks.classification"],
 )
 
@@ -25,8 +25,8 @@ celery_app.conf.update(
     task_reject_on_worker_lost=True,
     worker_prefetch_multiplier=1,
     # time limits
-    task_soft_time_limit=settings.TASK_SOFT_TIME_LIMIT,
-    task_time_limit=settings.TASK_TIME_LIMIT,
+    task_soft_time_limit=settings.task_soft_time_limit,
+    task_time_limit=settings.task_time_limit,
     # task routing
     task_routes={
         "workers.tasks.classification.*": {"queue": "classification"},
@@ -46,14 +46,14 @@ celery_app.conf.update(
 celery_app.conf.beat_schedule = {
     "classify-pending-urls": {
         "task": "workers.tasks.classification.classify_pending_batch",
-        "schedule": crontab(minute=f"*/{settings.CLASSIFICATION_INTERVAL_MINUTES}"),
-        "args": (settings.BATCH_SIZE,),
+        "schedule": crontab(minute=f"*/{settings.classification_interval_minutes}"),
+        "args": (settings.batch_size,),
         "options": {"queue": "classification"},
     },
     "reclassify-sample-urls": {
         "task": "workers.tasks.classification.reclassify_sample_batch",
         "schedule": crontab(hour="3", minute="0"),
-        "args": (settings.BATCH_SIZE, settings.RECLASSIFICATION_SAMPLE_PERCENT),
+        "args": (settings.batch_size, settings.reclassification_sample_percent),
         "options": {"queue": "classification"},
     },
 }
@@ -69,18 +69,7 @@ def init_worker(**kwargs) -> None:
 
 @worker_process_shutdown.connect
 def shutdown_worker(**kwargs) -> None:
-    import asyncio
-
-    from workers.db import close_db_connections
-
     logger.info(
         "worker_process_shutting_down",
         pid=kwargs.get("sender").pid if kwargs.get("sender") else None,
     )
-
-    # close db connections
-    try:
-        asyncio.run(close_db_connections())
-        logger.info("database_connections_closed")
-    except Exception as e:
-        logger.error("error_closing_database_connections", error=str(e))
