@@ -53,12 +53,12 @@ celery_app.conf.beat_schedule = {
         "args": (settings.batch_size,),
         "options": {"queue": "classification"},
     },
-    "reclassify-sample-urls": {
-        "task": "workers.tasks.classification.reclassify_sample_batch",
-        "schedule": crontab(hour="3", minute="0"),
-        "args": (settings.batch_size, settings.reclassification_sample_percent),
-        "options": {"queue": "classification"},
-    },
+    # "reclassify-sample-urls": {
+    #     "task": "workers.tasks.classification.reclassify_sample_batch",
+    #     "schedule": crontab(hour="3", minute="0"),
+    #     "args": (settings.batch_size, settings.reclassification_sample_percent),
+    #     "options": {"queue": "classification"},
+    # },
 }
 
 
