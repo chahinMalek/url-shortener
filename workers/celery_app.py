@@ -1,8 +1,11 @@
+import asyncio
+
 from celery import Celery
 from celery.schedules import crontab
 from celery.signals import worker_process_init, worker_process_shutdown
 
 from workers.config import settings
+from workers.db import close_db_engine, init_db_engine
 from workers.logging import get_logger
 
 logger = get_logger(__name__)
@@ -61,15 +64,25 @@ celery_app.conf.beat_schedule = {
 
 @worker_process_init.connect
 def init_worker(**kwargs) -> None:
-    logger.info(
-        "worker_process_initialized",
-        pid=kwargs.get("sender").pid if kwargs.get("sender") else None,
-    )
+    pid = kwargs.get("sender").pid if kwargs.get("sender") else None
+    logger.info("worker_process_initializing", pid=pid)
+
+    init_db_engine()
+
+    logger.info("worker_process_initialized", pid=pid)
 
 
 @worker_process_shutdown.connect
 def shutdown_worker(**kwargs) -> None:
-    logger.info(
-        "worker_process_shutting_down",
-        pid=kwargs.get("sender").pid if kwargs.get("sender") else None,
-    )
+    """Clean up worker process resources.
+
+    Called when a worker process is shutting down. Closes the database
+    engine and releases all connections.
+    """
+    pid = kwargs.get("sender").pid if kwargs.get("sender") else None
+    logger.info("worker_process_shutting_down", pid=pid)
+
+    # Close database engine and release connections
+    asyncio.run(close_db_engine())
+
+    logger.info("worker_process_shutdown_complete", pid=pid)

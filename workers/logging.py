@@ -20,7 +20,7 @@ def configure_logging() -> None:
     logging.basicConfig(
         format="%(message)s",
         stream=sys.stdout,
-        level=getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO),
+        level=getattr(logging, settings.log_level.upper(), logging.INFO),
     )
 
     structlog.configure(
@@ -31,11 +31,11 @@ def configure_logging() -> None:
             structlog.dev.set_exc_info,
             structlog.processors.TimeStamper(fmt="iso"),
             structlog.dev.ConsoleRenderer()
-            if settings.LOG_LEVEL == "DEBUG"
+            if settings.log_level == "DEBUG"
             else structlog.processors.JSONRenderer(),
         ],
         wrapper_class=structlog.make_filtering_bound_logger(
-            getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO)
+            getattr(logging, settings.log_level.upper(), logging.INFO)
         ),
         context_class=dict,
         logger_factory=structlog.PrintLoggerFactory(),
