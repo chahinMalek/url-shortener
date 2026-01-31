@@ -74,11 +74,6 @@ def init_worker(**kwargs) -> None:
 
 @worker_process_shutdown.connect
 def shutdown_worker(**kwargs) -> None:
-    """Clean up worker process resources.
-
-    Called when a worker process is shutting down. Closes the database
-    engine and releases all connections.
-    """
     pid = kwargs.get("sender").pid if kwargs.get("sender") else None
     logger.info("worker_process_shutting_down", pid=pid)
 
