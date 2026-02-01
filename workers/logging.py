@@ -3,7 +3,7 @@ import sys
 
 import structlog
 
-from workers.config import config
+from workers.config import get_config
 
 
 def configure_logging() -> None:
@@ -20,7 +20,7 @@ def configure_logging() -> None:
     logging.basicConfig(
         format="%(message)s",
         stream=sys.stdout,
-        level=getattr(logging, config.log_level.upper(), logging.INFO),
+        level=getattr(logging, get_config().log_level.upper(), logging.INFO),
     )
 
     structlog.configure(
@@ -31,11 +31,11 @@ def configure_logging() -> None:
             structlog.dev.set_exc_info,
             structlog.processors.TimeStamper(fmt="iso"),
             structlog.dev.ConsoleRenderer()
-            if config.log_level == "DEBUG"
+            if get_config().log_level == "DEBUG"
             else structlog.processors.JSONRenderer(),
         ],
         wrapper_class=structlog.make_filtering_bound_logger(
-            getattr(logging, config.log_level.upper(), logging.INFO)
+            getattr(logging, get_config().log_level.upper(), logging.INFO)
         ),
         context_class=dict,
         logger_factory=structlog.PrintLoggerFactory(),

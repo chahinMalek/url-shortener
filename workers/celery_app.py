@@ -4,7 +4,7 @@ from celery import Celery
 from celery.schedules import crontab
 from celery.signals import worker_process_init, worker_process_shutdown
 
-from workers.config import config
+from workers.config import get_config
 from workers.db import close_db_engine, init_db_engine
 from workers.logging import get_logger
 
@@ -12,8 +12,8 @@ logger = get_logger(__name__)
 
 celery_app = Celery(
     "url_classification_worker",
-    broker=config.redis_url,
-    backend=config.redis_url,
+    broker=get_config().redis_url,
+    backend=get_config().redis_url,
     include=["workers.tasks.classification"],
 )
 
@@ -28,8 +28,8 @@ celery_app.conf.update(
     task_reject_on_worker_lost=True,
     worker_prefetch_multiplier=1,
     # time limits
-    task_soft_time_limit=config.task_soft_time_limit,
-    task_time_limit=config.task_time_limit,
+    task_soft_time_limit=get_config().task_soft_time_limit,
+    task_time_limit=get_config().task_time_limit,
     # task routing
     task_routes={
         "workers.tasks.classification.*": {"queue": "classification"},
@@ -49,14 +49,14 @@ celery_app.conf.update(
 celery_app.conf.beat_schedule = {
     "classify-pending-urls": {
         "task": "workers.tasks.classification.classify_pending_batch",
-        "schedule": crontab(minute="0", hour=f"*/{config.classification_interval_hours}"),
-        "args": (config.batch_size,),
+        "schedule": crontab(minute="0", hour=f"*/{get_config().classification_interval_hours}"),
+        "args": (get_config().batch_size,),
         "options": {"queue": "classification"},
     },
     # "reclassify-sample-urls": {
     #     "task": "workers.tasks.classification.reclassify_sample_batch",
     #     "schedule": crontab(minute="0", hour="3"),
-    #     "args": (config.batch_size, config.reclassification_sample_percent),
+    #     "args": (get_config().batch_size, get_config().reclassification_sample_percent),
     #     "options": {"queue": "classification"},
     # },
 }

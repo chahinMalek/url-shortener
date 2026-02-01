@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 from pydantic import Field
 from pydantic_settings import SettingsConfigDict
 
@@ -78,4 +80,6 @@ class WorkerConfig(BaseConfig):
     )
 
 
-config = WorkerConfig()
+@lru_cache
+def get_config() -> WorkerConfig:
+    return WorkerConfig()
