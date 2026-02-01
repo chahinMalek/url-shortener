@@ -3,7 +3,7 @@ from pathlib import Path
 
 from core.services.classification.classifier.bert_classifier import BertUrlClassifier
 from infra.db.repositories.urls import PostgresUrlRepository
-from workers.config import settings as worker_settings
+from workers.config import config as worker_config
 from workers.db import get_db_session, init_db_engine
 
 LIMIT = 10
@@ -12,8 +12,8 @@ LIMIT = 10
 async def main():
     print(f"Fetching up to {LIMIT} pending URLs...")
 
-    model_path = Path(worker_settings.bert_model_path)
-    tokenizer_path = Path(worker_settings.bert_tokenizer_path)
+    model_path = Path(worker_config.bert_model_path)
+    tokenizer_path = Path(worker_config.bert_tokenizer_path)
 
     if not model_path.exists():
         print(f"Error: Model not found at {model_path}")

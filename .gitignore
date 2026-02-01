@@ -206,3 +206,8 @@ coverage/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Ignore all markdown files except README.md
+# all necessary documentation markdown files will be placed in docs/
+*.md
+!README.md

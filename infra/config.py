@@ -4,11 +4,33 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class Settings(BaseSettings):
+class BaseConfig(BaseSettings):
+    """Shared configuration for both app and workers."""
+
     model_config = SettingsConfigDict(
         case_sensitive=False,
         extra="ignore",
     )
+
+    # Database settings
+    database_url: str = Field(
+        ...,
+        description="PostgreSQL async connection string (required, e.g., postgresql+asyncpg://user:pass@host:5432/db)",
+    )
+    database_echo: bool = Field(
+        default=False,
+        description="Echo SQL statements to stdout (useful for debugging)",
+    )
+
+    # Redis settings
+    redis_url: str = Field(
+        ...,
+        description="Redis connection string (e.g., redis://redis:6379/db)",
+    )
+
+
+class AppConfig(BaseConfig):
+    """FastAPI application configuration."""
 
     # Application settings
     app_name: str = Field(
@@ -26,22 +48,6 @@ class Settings(BaseSettings):
     environment: str = Field(
         default="development",
         description="Environment name (development, staging, production)",
-    )
-
-    # Database settings
-    database_url: str = Field(
-        ...,
-        description="PostgreSQL async connection string (required, e.g., postgresql+asyncpg://user:pass@host:5432/db)",
-    )
-    database_echo: bool = Field(
-        default=False,
-        description="Echo SQL statements to stdout (useful for debugging)",
-    )
-
-    # Redis settings
-    redis_url: str = Field(
-        ...,
-        description="Redis connection string (e.g., redis://redis:6379/db)",
     )
 
     # Auth settings

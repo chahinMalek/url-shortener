@@ -5,7 +5,7 @@ from typing import ClassVar
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from workers.config import settings
+from workers.config import config
 from workers.logging import get_logger
 
 logger = get_logger(__name__)
@@ -32,8 +32,8 @@ class DatabaseManager:
             logger.warning("db_engine_already_initialized")
             return
 
-        db_url = database_url or settings.database_url
-        echo = database_echo if database_echo is not None else settings.database_echo
+        db_url = database_url or config.database_url
+        echo = database_echo if database_echo is not None else config.database_echo
         logger.info("initializing_db_engine", database_url=db_url.split("@")[-1])
 
         self._engine = create_async_engine(

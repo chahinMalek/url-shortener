@@ -1,30 +1,17 @@
 from pydantic import Field
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import SettingsConfigDict
+
+from infra.config import BaseConfig
 
 
-class WorkerSettings(BaseSettings):
+class WorkerConfig(BaseConfig):
+    """Celery worker configuration."""
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
-    )
-
-    # Redis settings
-    redis_url: str = Field(
-        default="redis://localhost:6379/0",
-        description="Redis connection URL for Celery broker and result backend",
-    )
-
-    # Database settings
-    database_url: str = Field(
-        ...,
-        description="PostgreSQL async connection string (required, e.g., postgresql+asyncpg://user:pass@host:5432/db)",
-    )
-
-    database_echo: bool = Field(
-        default=False,
-        description="Echo SQL statements to stdout (useful for debugging)",
     )
 
     # Model settings
@@ -91,4 +78,4 @@ class WorkerSettings(BaseSettings):
     )
 
 
-settings = WorkerSettings()
+config = WorkerConfig()

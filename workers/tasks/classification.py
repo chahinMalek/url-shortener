@@ -9,7 +9,7 @@ from core.services.classification.exceptions import ClassificationError
 from infra.db.repositories.classification_results import PostgresClassificationResultRepository
 from infra.db.repositories.urls import PostgresUrlRepository
 from workers.celery_app import celery_app
-from workers.config import settings
+from workers.config import config
 from workers.db import get_db_session
 from workers.logging import get_logger
 from workers.models.batch_result import ClassificationBatchResult
@@ -19,14 +19,14 @@ logger = get_logger(__name__)
 
 @celery_app.task(
     bind=True,
-    soft_time_limit=settings.task_soft_time_limit,
-    time_limit=settings.task_time_limit,
+    soft_time_limit=config.task_soft_time_limit,
+    time_limit=config.task_time_limit,
     max_retries=3,
     default_retry_delay=60,
 )
 def classify_pending_batch(self, batch_size: int | None = None) -> dict:
     """Task for classifying pending URLs in batches using the offline BERT classifier."""
-    batch_size = batch_size or settings.batch_size
+    batch_size = batch_size or config.batch_size
     logger.info("classify_pending_batch_started", batch_size=batch_size, task_id=self.request.id)
 
     try:
@@ -54,8 +54,8 @@ async def _classify_pending_batch(batch_size: int) -> ClassificationBatchResult:
     result = ClassificationBatchResult()
 
     # Initialize classifier
-    model_path = Path(settings.bert_model_path)
-    tokenizer_path = Path(settings.bert_tokenizer_path)
+    model_path = Path(config.bert_model_path)
+    tokenizer_path = Path(config.bert_tokenizer_path)
 
     if not model_path.exists():
         error_msg = f"BERT model not found at {model_path}"
