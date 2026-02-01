@@ -19,6 +19,13 @@ This document describes the high-level architecture of the URL Shortener and how
 - **`db/models/`**: SQLAlchemy models for database persistence.
 - **`db/repositories/`**: Data access patterns using the Repository pattern.
 - **`services/db_service.py`**: Database connection and session management.
+- **`config.py`**: Configuration classes (`BaseConfig`, `AppConfig`) using pydantic-settings.
+
+### 4. Workers (`workers/`)
+- **`celery_app.py`**: Celery application configuration and beat schedule.
+- **`tasks/classification.py`**: Batch URL classification task using BERT classifier.
+- **`config.py`**: Worker-specific configuration (`WorkerConfig` extends `BaseConfig`).
+- **`db.py`**: Database session management for workers.
 
 ---
 
@@ -26,7 +33,7 @@ This document describes the high-level architecture of the URL Shortener and how
 
 The ML classification will follow a **2-tier approach** to balance latency and accuracy.
 
-### ⚡ Tier 1: Synchronous Classification (Fast) ✅ IMPLEMENTED
+### ⚡ Tier 1: Synchronous Classification (Fast)
 - **Location**: Triggered within the `url.shorten` endpoint.
 - **Implementation**: `OnlineClassifier` using XGBoost model with ONNX runtime.
 - **Flow**:
@@ -41,13 +48,16 @@ The ML classification will follow a **2-tier approach** to balance latency and a
     - Database persistence of classification results.
 - **Goal**: Catch obvious phishing attempts and known malicious domains with minimal overhead.
 
-### 🔍 Tier 2: Asynchronous Classification (Deep)
-- **Location**: Background worker process.
+### 🔍 Tier 2: Asynchronous Classification (Offline)
+- **Location**: Celery worker process (`workers/tasks/classification.py`).
+- **Implementation**: `BertUrlClassifier` using URL-BERT model with ONNX runtime.
 - **Flow**:
-    1. A background task periodically queries the DB for URLs with `safety_status = PENDING` or recent scans.
-    2. API calls a **Heavyweight Model** (e.g., BERT-based) or external security APIs.
-    3. Update `safety_status` and `threat_score` in the DB.
-    4. If now classified as `MALICIOUS`, set `is_active = False`.
+    1. Celery beat schedules `classify_pending_batch` task hourly.
+    2. Worker fetches URLs with `safety_status = PENDING` from the database.
+    3. Each URL is classified using the BERT-based classifier.
+    4. Classification results are stored with threat scores and timestamps.
+    5. If classified as `MALICIOUS`, the URL is automatically disabled (`is_active = False`).
+- **Monitoring**: Flower dashboard available at port 5555 for task monitoring.
 - **Goal**: Perform deep inspection of the URL structure, content, and reputation without delaying the user response.
 
 ---

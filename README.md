@@ -21,6 +21,8 @@ The core philosophy of this project is to provide more than just a redirection s
 - **Framework**: FastAPI
 - **Database**: SQLAlchemy 2.0 (Async) + PostgreSQL (or SQLite local)
 - **Cache & Rate Limiting**: Redis
+- **Background Tasks**: Celery + Redis (broker)
+- **Task Monitoring**: Flower
 - **Dependency Management**: `uv`
 - **Linting & Formatting**: `ruff`
 - **Testing**: `pytest`
@@ -53,6 +55,16 @@ The core philosophy of this project is to provide more than just a redirection s
     ```bash
     uv run fastapi dev app/api.py
     ```
+
+### Docker (Recommended)
+Run all services (API, PostgreSQL, Redis, Celery worker, Celery beat, Flower) with:
+```bash
+docker compose up
+```
+
+Services available:
+- **API**: http://localhost:8000
+- **Flower** (task monitoring): http://localhost:5555
 
 ---
 

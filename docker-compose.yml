@@ -56,6 +56,66 @@ services:
     networks:
       - urlshort-network
 
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: urlshort-celery-worker
+    env_file:
+      - .env.docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./app:/app/app
+      - ./core:/app/core
+      - ./infra:/app/infra
+      - ./workers:/app/workers
+    command: celery -A workers.celery_app worker --loglevel=info -Q classification
+    networks:
+      - urlshort-network
+
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: urlshort-celery-beat
+    env_file:
+      - .env.docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./app:/app/app
+      - ./core:/app/core
+      - ./infra:/app/infra
+      - ./workers:/app/workers
+    command: celery -A workers.celery_app beat --loglevel=info
+    networks:
+      - urlshort-network
+
+  flower:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: urlshort-flower
+    env_file:
+      - .env.docker
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+      - celery-worker
+    volumes:
+      - ./workers:/app/workers
+    command: celery -A workers.celery_app flower --port=5555
+    networks:
+      - urlshort-network
+
 volumes:
   postgres_data:
   redis_data:
