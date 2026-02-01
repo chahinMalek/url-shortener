@@ -33,11 +33,11 @@ class WorkerConfig(BaseConfig):
         le=1000,
     )
 
-    classification_interval_minutes: int = Field(
-        default=60,
-        description="Interval between classification runs (in minutes)",
+    classification_interval_hours: int = Field(
+        default=1,
+        description="Interval between classification runs (in hours)",
         ge=1,
-        le=1440,
+        le=24,
     )
 
     reclassification_sample_percent: float = Field(

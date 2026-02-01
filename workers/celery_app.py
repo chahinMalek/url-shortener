@@ -49,13 +49,13 @@ celery_app.conf.update(
 celery_app.conf.beat_schedule = {
     "classify-pending-urls": {
         "task": "workers.tasks.classification.classify_pending_batch",
-        "schedule": crontab(minute=f"*/{config.classification_interval_minutes}"),
+        "schedule": crontab(minute="0", hour=f"*/{config.classification_interval_hours}"),
         "args": (config.batch_size,),
         "options": {"queue": "classification"},
     },
     # "reclassify-sample-urls": {
     #     "task": "workers.tasks.classification.reclassify_sample_batch",
-    #     "schedule": crontab(hour="3", minute="0"),
+    #     "schedule": crontab(minute="0", hour="3"),
     #     "args": (config.batch_size, config.reclassification_sample_percent),
     #     "options": {"queue": "classification"},
     # },
