@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies.db import get_db_session
 from infra.db.repositories.classification_results import PostgresClassificationResultRepository
+from infra.db.repositories.notifications import PostgresNotificationRepository
 from infra.db.repositories.permissions import PostgresPermissionRepository
 from infra.db.repositories.urls import PostgresUrlRepository
 from infra.db.repositories.users import PostgresUserRepository
@@ -26,3 +27,9 @@ def get_classification_result_repository(
     session: AsyncSession = Depends(get_db_session),
 ) -> PostgresClassificationResultRepository:
     return PostgresClassificationResultRepository(session)
+
+
+def get_notification_repository(
+    session: AsyncSession = Depends(get_db_session),
+) -> PostgresNotificationRepository:
+    return PostgresNotificationRepository(session)

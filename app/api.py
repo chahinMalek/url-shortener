@@ -8,6 +8,7 @@ from fastapi_limiter.depends import RateLimiter
 from app.container import config, db_service
 from app.dependencies.rate_limits import rate_limit_identifier
 from app.routers import auth as auth_router
+from app.routers import notifications as notifications_router
 from app.routers import url as url_router
 
 
@@ -30,6 +31,7 @@ app = FastAPI(
 
 app.include_router(auth_router.router)
 app.include_router(url_router.router)
+app.include_router(notifications_router.router)
 
 
 @app.get(

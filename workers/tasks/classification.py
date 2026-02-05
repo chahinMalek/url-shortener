@@ -3,10 +3,12 @@ import time
 from pathlib import Path
 
 from core.entities.classification_result import ClassificationResult
+from core.entities.notification import Notification
 from core.enums.safety_status import SafetyStatus
 from core.services.classification import BertUrlClassifier
 from core.services.classification.exceptions import ClassificationError
 from infra.db.repositories.classification_results import PostgresClassificationResultRepository
+from infra.db.repositories.notifications import PostgresNotificationRepository
 from infra.db.repositories.urls import PostgresUrlRepository
 from workers.celery_app import celery_app
 from workers.config import get_config
@@ -73,6 +75,7 @@ async def _classify_pending_batch(batch_size: int) -> ClassificationBatchResult:
     async with get_db_session() as session:
         url_repo = PostgresUrlRepository(session)
         result_repo = PostgresClassificationResultRepository(session)
+        notification_repo = PostgresNotificationRepository(session)
 
         pending_urls = await url_repo.get_pending_urls(limit=batch_size)
         logger.info("pending_urls_fetched", count=len(pending_urls))
@@ -109,15 +112,31 @@ async def _classify_pending_batch(batch_size: int) -> ClassificationBatchResult:
                     classifier=classifier.key,
                 )
 
-                # disable URL if malicious
+                # disable URL if malicious and notify owner
                 if classifier_result.status == SafetyStatus.MALICIOUS:
                     await url_repo.disable(short_code)
                     result.malicious_count += 1
+
+                    # create notification for URL owner
+                    notification = Notification(
+                        user_id=url_entity.owner_id,
+                        notification_type="url_flagged_malicious",
+                        message=f"Your shortened URL ({short_code}) has been flagged as potentially malicious and has been disabled.",
+                        details={
+                            "short_code": short_code,
+                            "long_url": long_url,
+                            "threat_score": classifier_result.threat_score,
+                            "classifier": classifier.key,
+                        },
+                    )
+                    await notification_repo.add(notification)
+
                     logger.info(
                         "url_classified_as_malicious",
                         short_code=short_code,
                         threat_score=classifier_result.threat_score,
                         url_disabled=True,
+                        owner_notified=True,
                     )
                 else:
                     result.safe_count += 1
