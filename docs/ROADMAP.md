@@ -42,9 +42,12 @@ To enhance safety by preventing the shortening of malicious URLs and providing c
     *   Docker Compose includes worker, beat, and flower services.
 *   [x] **Automatic Remediation**:
     *   URLs classified as `MALICIOUS` are automatically disabled (`is_active=False`).
-    *   [ ] Notify URL owners (if applicable) - future enhancement.
+*   [ ] **Formalize ONNX model assets***
+    *   Currently, the system uses full trained model weights. Instead, use model configs, tokenizer and ONNX files.
 
-## 📊 Phase 4: Monitoring & Refinement
+## 📊 Phase 4: Notifying Users, Monitoring & Refinement
+*   [ ] **User Notifications**:
+    *   Notify URL owners if their URLs are flagged malicious.
 *   [ ] **Dashboards**:
     *   Visualize classification stats (safe vs. malicious ratios, model confidence).
     *   Monitor false positive/negative rates.
@@ -54,3 +57,23 @@ To enhance safety by preventing the shortening of malicious URLs and providing c
 *   [ ] **Testing & Validation**:
     *   Create a benchmark dataset of malicious and safe URLs.
     *   Automate performance testing for ML models.
+
+## 🚀 Phase 5: Platform Enhancements
+*   [ ] **Database Migrations**:
+    *   Integrate Alembic for proper schema versioning.
+    *   Remove reliance on code-first `create_all()`.
+*   [ ] **URL Analytics**:
+    *   Implement click tracking and statistics.
+    *   Add dashboard for URL owners to view analytics.
+*   [ ] **Custom Short Codes**:
+    *   Allow users to specify vanity URLs.
+    *   Add validation for reserved/inappropriate codes.
+*   [ ] **URL Expiration**:
+    *   Add configurable TTL for shortened URLs.
+    *   Implement cleanup job for expired URLs.
+*   [ ] **Batch API**:
+    *   Add endpoint for bulk URL submission.
+    *   Support async processing with webhooks.
+*   [ ] **Model Versioning**:
+    *   Implement A/B testing capability for ML models.
+    *   Add model performance tracking and comparison.

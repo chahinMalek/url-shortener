@@ -17,16 +17,32 @@ The core philosophy of this project is to provide more than just a redirection s
 
 ---
 
+## 🎯 Features
+
+- **URL Shortening**: Generate short codes with collision detection
+- **User Authentication**: JWT-based auth with registration and login
+- **ML Safety Classification**: Two-tier approach (fast + deep inspection)
+- **Rate Limiting**: Redis-backed request throttling
+- **Background Processing**: Celery workers for async classification
+- **Auto-Remediation**: Malicious URLs automatically disabled
+- **Docker Ready**: Full Docker Compose setup for all services
+
+---
+
 ## 🛠️ Tech Stack
-- **Framework**: FastAPI
-- **Database**: SQLAlchemy 2.0 (Async) + PostgreSQL (or SQLite local)
-- **Cache & Rate Limiting**: Redis
-- **Background Tasks**: Celery + Redis (broker)
-- **Task Monitoring**: Flower
-- **Dependency Management**: `uv`
-- **Linting & Formatting**: `ruff`
-- **Testing**: `pytest`
-- **CI/CD**: GitHub Actions
+
+| Category | Technology |
+|----------|------------|
+| **Framework** | FastAPI |
+| **Database** | SQLAlchemy 2.0 (Async) + PostgreSQL |
+| **Cache & Rate Limiting** | Redis |
+| **Background Tasks** | Celery + Redis (broker) |
+| **Task Monitoring** | Flower |
+| **ML Runtime** | ONNX Runtime |
+| **Dependency Management** | `uv` |
+| **Linting & Formatting** | `ruff` |
+| **Testing** | `pytest` + `pytest-asyncio` |
+| **CI/CD** | GitHub Actions |
 
 ---
 
@@ -68,8 +84,11 @@ Services available:
 
 ---
 
-## 🗺️ Roadmap
-Detailed plans for the ML integration and other upcoming features can be found in our [Roadmap](./docs/ROADMAP.md).
+## 📖 Documentation
+
+- **[Architecture](./docs/ARCHITECTURE.md)** - System design, component layout, and data flow
+- **[Roadmap](./docs/ROADMAP.md)** - Development phases and upcoming features
+- **[API Docs](http://localhost:8000/docs)** - Interactive Swagger UI (when running)
 
 ---
 

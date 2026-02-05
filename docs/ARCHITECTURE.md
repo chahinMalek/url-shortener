@@ -1,31 +1,93 @@
 # Architecture Overview
 
-This document describes the high-level architecture of the URL Shortener and how the Machine Learning components will be integrated.
+This document describes the high-level architecture of the URL Shortener and how the Machine Learning components are integrated.
 
-## 🏗️ Current Component Layout
+## 🏗️ Component Layout
 
-### 1. API Layer (`app/routers`)
-- **`url.py`**: Handles URL shortening (`/shorten`) and redirection (`/{short_url}`).
-- **`auth.py`**: Manages user authentication and registration.
+### 1. API Layer (`app/`)
+- **`api.py`**: Application entry point with lifespan management (Redis, DB initialization).
+- **`routers/url.py`**: URL shortening (`PUT /shorten`) and redirection (`GET /{short_url}`).
+- **`routers/auth.py`**: User registration (`POST /register`) and login (`POST /login`).
+- **`dependencies/`**: FastAPI dependency injection for sessions, repositories, and services.
+- **`schemas/`**: Pydantic request/response models.
 
 ### 2. Core Logic (`core/`)
-- **`entities/`**: Domain models (e.g., `Url`, `User`, `ClassificationResult`).
-- **`services/`**: Business logic (e.g., `HashingService`, `UrlValidationService`).
+- **`entities/`**: Domain models (`Url`, `User`, `ClassifierResult`, `ClassificationResult`).
+- **`repositories/`**: Abstract repository interfaces using Python `Protocol` classes.
+- **`services/`**: Business logic (`HashingService`, `UrlValidator`).
 - **`services/classification/`**: ML-powered URL classification system.
-  - **`classifier/`**: Classifier implementations (`OnlineClassifier`, `ONNXClassifier`).
-  - Feature extraction and model inference logic.
+  - **`classifier/base.py`**: `BaseUrlClassifier` protocol defining the classifier interface.
+  - **`classifier/online_classifier.py`**: Tier 1 XGBoost classifier (19 features).
+  - **`classifier/bert_classifier.py`**: Tier 2 BERT transformer classifier.
+  - **`classifier/onnx_classifier.py`**: Generic ONNX model wrapper.
+- **`enums/`**: Domain enums (`SafetyStatus`: PENDING, SAFE, MALICIOUS, SUSPICIOUS).
 
 ### 3. Infrastructure (`infra/`)
-- **`db/models/`**: SQLAlchemy models for database persistence.
-- **`db/repositories/`**: Data access patterns using the Repository pattern.
-- **`services/db_service.py`**: Database connection and session management.
-- **`config.py`**: Configuration classes (`BaseConfig`, `AppConfig`) using pydantic-settings.
+- **`db/models/`**: SQLAlchemy ORM models (`UserModel`, `UrlModel`, `ClassificationResultModel`).
+- **`db/repositories/`**: PostgreSQL repository implementations.
+- **`services/db_service.py`**: Async database session management.
+- **`config.py`**: Pydantic settings (`BaseConfig` shared, `AppConfig` for FastAPI).
 
 ### 4. Workers (`workers/`)
-- **`celery_app.py`**: Celery application configuration and beat schedule.
-- **`tasks/classification.py`**: Batch URL classification task using BERT classifier.
+- **`celery_app.py`**: Celery configuration, task routing, and beat schedule.
+- **`tasks/classification.py`**: `classify_pending_batch` task for BERT classification.
 - **`config.py`**: Worker-specific configuration (`WorkerConfig` extends `BaseConfig`).
-- **`db.py`**: Database session management for workers.
+- **`db.py`**: Synchronous database session management for workers.
+
+---
+
+## 📊 Database Schema
+
+### Models & Relationships
+
+| Model | Table | Primary Key | Description |
+|-------|-------|-------------|-------------|
+| `UserModel` | `users` | `user_id` | User accounts with email/password |
+| `UserPermissionModel` | `user_permissions` | `(user_id, permission)` | User permission assignments |
+| `UrlModel` | `urls` | `short_code` | Shortened URLs with safety status |
+| `ClassificationResultModel` | `classification_results` | `id` | Classification audit log |
+
+### Entity Relationships
+```
+erDiagram
+    USERS ||--o{ USER_PERMISSIONS : has
+
+    USERS ||--o{ URLS : owns
+    USERS {
+        int id
+    }
+    URLS {
+        int owner_id
+        string url_short_code
+    }
+
+    URLS ||--o{ CLASSIFICATION_RESULTS : produces
+    CLASSIFICATION_RESULTS {
+        string url_short_code
+    }
+
+```
+
+### Key Fields on `urls`
+- `safety_status`: PENDING | SAFE | MALICIOUS | SUSPICIOUS
+- `threat_score`: Classifier confidence (0.0 - 1.0)
+- `classifier`: Name of the model that made the determination
+- `classified_at`: Timestamp of last classification
+
+---
+
+## 🌐 API Endpoints
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/` | No | Root endpoint with API info |
+| GET | `/health` | No | Health check |
+| POST | `/api/v1/auth/register` | No | Create user account |
+| POST | `/api/v1/auth/login` | No | Get JWT access token |
+| PUT | `/api/v1/url/shorten` | Yes | Create shortened URL |
+| GET | `/api/v1/url/{short_url}` | No | Redirect to original URL (302) |
+
+All endpoints are rate-limited via Redis-backed FastAPILimiter.
 
 ---
 
@@ -90,3 +152,47 @@ sequenceDiagram
         DB->>DB: Set is_active = False
     end
 ```
+
+---
+
+## 🐳 Docker Services
+
+The project includes a complete Docker Compose setup for local development:
+
+| Service | Container | Port | Description |
+|---------|-----------|------|-------------|
+| `postgres` | PostgreSQL 16 | 5432 | Primary database |
+| `redis` | Redis 7 | 6379 | Rate limiting & Celery broker |
+| `app` | FastAPI | 8000 | Main API server |
+| `celery-worker` | Celery | - | Classification task processor |
+| `celery-beat` | Celery Beat | - | Periodic task scheduler |
+| `flower` | Flower | 5555 | Celery monitoring dashboard |
+
+---
+
+## 🔧 Configuration
+
+### Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DATABASE_URL` | Yes | PostgreSQL async connection string |
+| `REDIS_URL` | Yes | Redis connection string |
+| `SECRET_KEY` | Yes | JWT signing key (min 32 chars) |
+| `DEBUG` | No | Enable debug mode (default: false) |
+
+### ML Model Paths
+
+| Model | Default Path |
+|-------|--------------|
+| Online XGBoost | `assets/models/online_classifier_xgb_v1.0.0.onnx` |
+| Offline BERT | `assets/models/urlbert_classifier_v4/urlbert_classifier_v4.onnx` |
+| BERT Tokenizer | `assets/models/urlbert_classifier_v4/`|
+
+---
+
+## 🧪 Testing
+
+- **Framework**: pytest with pytest-asyncio
+- **Database**: SQLite in-memory via aiosqlite (not PostgreSQL)
+- **Structure**: Tests mirror the source structure (`tests/core/`, `tests/infra/`, `tests/workers/`)
