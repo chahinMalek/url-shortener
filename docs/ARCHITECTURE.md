@@ -23,7 +23,7 @@ This document describes the high-level architecture of the URL Shortener and how
 - **`enums/`**: Domain enums (`SafetyStatus`: PENDING, SAFE, MALICIOUS, SUSPICIOUS).
 
 ### 3. Infrastructure (`infra/`)
-- **`db/models/`**: SQLAlchemy ORM models (`UserModel`, `UrlModel`, `ClassificationResultModel`).
+- **`db/models/`**: SQLAlchemy ORM models (`UserModel`, `UrlModel`, `ClassificationResultModel`, `NotificationModel`).
 - **`db/repositories/`**: PostgreSQL repository implementations.
 - **`services/db_service.py`**: Async database session management.
 - **`config.py`**: Pydantic settings (`BaseConfig` shared, `AppConfig` for FastAPI).
@@ -46,6 +46,7 @@ This document describes the high-level architecture of the URL Shortener and how
 | `UserPermissionModel` | `user_permissions` | `(user_id, permission)` | User permission assignments |
 | `UrlModel` | `urls` | `short_code` | Shortened URLs with safety status |
 | `ClassificationResultModel` | `classification_results` | `id` | Classification audit log |
+| `NotificationModel` | `notifications` | `id` | In-app user notifications |
 
 ### Entity Relationships
 ```
@@ -64,6 +65,12 @@ erDiagram
     URLS ||--o{ CLASSIFICATION_RESULTS : produces
     CLASSIFICATION_RESULTS {
         string url_short_code
+    }
+
+    USERS ||--o{ NOTIFICATIONS : receives
+    NOTIFICATIONS {
+        string user_id
+        int id
     }
 
 ```
@@ -86,6 +93,10 @@ erDiagram
 | POST | `/api/v1/auth/login` | No | Get JWT access token |
 | PUT | `/api/v1/url/shorten` | Yes | Create shortened URL |
 | GET | `/api/v1/url/{short_url}` | No | Redirect to original URL (302) |
+| GET | `/api/v1/notifications` | Yes | Get user notifications (paginated) |
+| GET | `/api/v1/notifications/unread-count` | Yes | Get unread notification count |
+| PATCH | `/api/v1/notifications/{id}/read` | Yes | Mark notification as read |
+| POST | `/api/v1/notifications/read-all` | Yes | Mark all notifications as read |
 
 All endpoints are rate-limited via Redis-backed FastAPILimiter.
 

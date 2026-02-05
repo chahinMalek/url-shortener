@@ -46,8 +46,9 @@ To enhance safety by preventing the shortening of malicious URLs and providing c
     *   Currently, the system uses full trained model weights. Instead, use model configs, tokenizer and ONNX files.
 
 ## 📊 Phase 4: Notifying Users, Monitoring & Refinement
-*   [ ] **User Notifications**:
-    *   Notify URL owners if their URLs are flagged malicious.
+*   [x] **User Notifications**:
+    *   In-app notifications created when offline classifier flags URLs as malicious.
+    *   API endpoints for fetching, marking as read, and managing notifications.
 *   [ ] **Dashboards**:
     *   Visualize classification stats (safe vs. malicious ratios, model confidence).
     *   Monitor false positive/negative rates.
